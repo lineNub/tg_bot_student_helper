@@ -83,7 +83,10 @@ namespace Bot_Telegram
             await Task.Delay(-1); // Устанавливаем бесконечную задержку, чтобы наш бот работал постоянно
         }
 
+        //private static async Auntification()
+
         private static async Task UpdateHandler(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken){
+            var flag = 0;
             // Обязательно ставим блок try-catch, чтобы наш бот не "падал" в случае каких-либо ошибок
             try{
                 // Сразу же ставим конструкцию switch, чтобы обрабатывать приходящие Update
@@ -108,8 +111,9 @@ namespace Bot_Telegram
                                 // Тут понятно, текстовый тип
                                 case MessageType.Text:{     
                                         // тут обрабатываем команду /start, остальные аналогично
-                                        if (message.Text == "/start" || message.Text == "Начать" || message.Text == "Старт" || message.Text == "\n")
+                                        if (message.Text == "/start" ||  message.Text == "Старт")
                                         {
+                                            flag = 1;
                                             await InsertIntoLogs(chat.Id, 1);
 
                                             var startKeyboard = new ReplyKeyboardMarkup(
@@ -141,6 +145,7 @@ namespace Bot_Telegram
 
                                         if (message.Text == "До свидания")
                                         {
+                                            flag = 0;
                                             var replyKeyboard = new ReplyKeyboardMarkup(
                                             new List<KeyboardButton[]>()
                                             {
@@ -149,6 +154,7 @@ namespace Bot_Telegram
                                                     new KeyboardButton("Старт"),
                                                 }
                                             })
+
                                             { ResizeKeyboard = true, };
 
                                             await botClient.SendTextMessageAsync(
@@ -160,9 +166,11 @@ namespace Bot_Telegram
 
                                         if (message.Text == "Назад")
                                         {
-                                            var backKeyboard = new ReplyKeyboardMarkup(
-                                            new List<KeyboardButton[]>()
+                                            if (flag == 1)
                                             {
+                                              var backKeyboard = new ReplyKeyboardMarkup(
+                                              new List<KeyboardButton[]>()
+                                              {
                                                     new KeyboardButton[]
                                                     {
                                                         new KeyboardButton("Студент ЗФО"),
@@ -173,106 +181,260 @@ namespace Bot_Telegram
                                                     {
                                                         new KeyboardButton("До свидания"),
                                                     },
-                                            })
-                                            { ResizeKeyboard = true, };
-                                            await botClient.SendTextMessageAsync(
-                                                chat.Id,
-                                                "",
-                                                replyMarkup: backKeyboard
-                                            );
+                                              })
+                                                { ResizeKeyboard = true, };
+                                                await botClient.SendTextMessageAsync(
+                                                    chat.Id,
+                                                    "",
+                                                    replyMarkup: backKeyboard
+                                                );
 
-                                            break;
+                                                break;
+                                            }
+
+                                            if (flag == 2)
+                                            {
+                                              var backKeyboard = new ReplyKeyboardMarkup(
+                                              new List<KeyboardButton[]>()
+                                              {
+                                                    new KeyboardButton[]
+                                                    {
+                                                        new KeyboardButton("Студент ЗФО"),
+                                                        new KeyboardButton("Сотрудник УВП"),
+                                                    },
+
+                                                    new KeyboardButton[]
+                                                    {
+                                                        new KeyboardButton("До свидания"),
+                                                    },
+                                              })
+                                                { ResizeKeyboard = true, };
+                                                await botClient.SendTextMessageAsync(
+                                                    chat.Id,
+                                                    "",
+                                                    replyMarkup: backKeyboard
+                                                );
+
+                                                break;
+                                            }
+
+                                            flag -= 1;
+
                                         }
 
                                         if (message.Text == "Студент ЗФО")
                                         {
+                                            flag = 2;
                                             var studentKeyboard = new InlineKeyboardMarkup(
-                                            new InlineKeyboardButton[2]
+                                                new List<InlineKeyboardButton[]>()
                                                 {
-                                                InlineKeyboardButton.WithCallbackData("Бакалавриат/Специалитет", "Bachelor"),
-                                                InlineKeyboardButton.WithCallbackData("Магистратура", "Magistr")
-                                                }
-                                            )
-                                            { };
+                                                    new InlineKeyboardButton[]
+                                                    {
+                                                        InlineKeyboardButton.WithCallbackData("Бакалавриат/Специалитет", "Bachelor"),
+                                                        InlineKeyboardButton.WithCallbackData("Магистратура", "Magistr")
+                                                    },
+                                                });
 
                                             await botClient.SendTextMessageAsync(
                                                 chat.Id,
                                                 text: "Выбирете ступень образования:",
                                                 allowSendingWithoutReply: true,
-                                                replyMarkup: studentKeyboard
-                                            );
-                                            //var send = new SendMessage(update.Message.Chat.Id, "Студент ЗФО")
-                                            //{
-                                            //    ReplyMarkup = new ReplyKeyboardRemove() { RemoveKeyboard = true }
-                                            //};
-                                            //await botClient.MakeRequestAsync(send);
+                                                replyMarkup: studentKeyboard);
 
                                             break;
-                                    }
+                                        }
 
+                                        if (message.Text == "Расписание экзаменов")
+                                        {
+                                            flag = 3;
+                                            var schedualKeyboard = new InlineKeyboardMarkup(
+                                               new List<InlineKeyboardButton[]>()
+                                               {
+                                                   new InlineKeyboardButton[]
+                                                   {
+                                                       InlineKeyboardButton.WithCallbackData("Расписание экзаменов", " ekz")
+                                                   },
+                                               });
 
+                                            await botClient.SendTextMessageAsync(
+                                                chat.Id,
+                                                "Для просмотра расписания нажмите кнопку ниже",
+                                                replyMarkup: schedualKeyboard);
 
+                                            break;
+                                        }
 
-                                    if (message.Text == "Страница кафедры")
-                                    {
-                                        var siteKeyboard = new InlineKeyboardMarkup(
-                                            new List<InlineKeyboardButton[]>()
-                                            {
-                                                new InlineKeyboardButton[]
+                                        if (message.Text == "Контакты преподавателей")
+                                        {
+                                            flag = 3;
+                                            var schedualKeyboard = new InlineKeyboardMarkup(
+                                               new List<InlineKeyboardButton[]>()
+                                               {
+                                                   new InlineKeyboardButton[]
+                                                   {
+                                                       InlineKeyboardButton.WithCallbackData("1", " 1"),
+                                                       InlineKeyboardButton.WithCallbackData("2", " 2"),
+                                                       InlineKeyboardButton.WithCallbackData("3", " 3")
+                                                   },
+
+                                                   new InlineKeyboardButton[]
+                                                   {
+                                                       InlineKeyboardButton.WithCallbackData("4", " 4"),
+                                                       InlineKeyboardButton.WithCallbackData("5", " 5"),
+                                                       InlineKeyboardButton.WithCallbackData("6", " 6")
+                                                   },
+
+                                                   new InlineKeyboardButton[]
+                                                   {
+                                                       InlineKeyboardButton.WithCallbackData("7", " 7"),
+                                                       InlineKeyboardButton.WithCallbackData("8", " 8"),
+                                                       InlineKeyboardButton.WithCallbackData("9", " 9")
+                                                   },
+
+                                                   new InlineKeyboardButton[]
+                                                   {
+                                                       InlineKeyboardButton.WithCallbackData("10", " 10"),
+                                                       InlineKeyboardButton.WithCallbackData("11", " 11"),
+                                                       InlineKeyboardButton.WithCallbackData("12", " 12")
+                                                   },
+
+                                                   new InlineKeyboardButton[]
+                                                   {
+                                                       InlineKeyboardButton.WithCallbackData("13", " 13"),
+                                                       InlineKeyboardButton.WithCallbackData("14", " 14"),
+                                                       InlineKeyboardButton.WithCallbackData("15", " 15")
+                                                   },
+
+                                                     new InlineKeyboardButton[]
+                                                   {
+                                                       InlineKeyboardButton.WithCallbackData("16", " 16"),
+                                                       InlineKeyboardButton.WithCallbackData("17", " 17"),
+                                                       InlineKeyboardButton.WithCallbackData("18", " 18")
+                                                   },
+
+                                                       new InlineKeyboardButton[]
+                                                   {
+                                                       InlineKeyboardButton.WithCallbackData("19", " 19")
+                                                   },
+                                               });
+
+                                            await botClient.SendTextMessageAsync(
+                                                chat.Id,
+                                                "Вот список преподавателей:"+
+                                                "1)Леонов Михаил Витальевич"+
+                                                "2)Аль аккад Мхд айман" +
+                                                "3)Архипов Игорь Олегович" +
+                                                "4)Брычкина Мария Сергеевна" +
+                                                "5)Власов Вадим Геннадьевич" +
+                                                "6)Еланцев Михаил Олегович" +
+                                                "7)Зылева Елена Анатольевна" +
+                                                "8)Коробейников Александр Васильевич" +
+                                                "9)Левицкая Людмила Николаевна" +
+                                                "10)Лугачев Павел Петрович" +
+                                                "11)Макарова Ольга Леонидовна" +
+                                                "12)Постникова Елена Николаевна" +
+                                                "13)Русских Анатолий Геннадьевич" +
+                                                "14)Соболева Валентина Павловна" +
+                                                "15)Старыгин Артем Викторович" +
+                                                "16)Тарасов Владимир Георгиевич" +
+                                                "17)Чернышев Константин Сергеевич" +
+                                                "18)Шаталова Ольга Михайловна" +
+                                                "19)Шишлина Наталья Васильевна",
+                                                replyMarkup: schedualKeyboard);
+
+                                            break;
+                                        }
+
+                                        if (message.Text == "Страница кафедры")
+                                        {
+                                            var siteKeyboard = new InlineKeyboardMarkup(
+                                                new List<InlineKeyboardButton[]>()
                                                 {
-                                                    InlineKeyboardButton.WithUrl("Страница кафедры","https://istu.ru/department/kafedra-programmnoe-obespechenie"),
-                                                },
-                                            }
-                                        );
+                                                    new InlineKeyboardButton[]
+                                                    {
+                                                        InlineKeyboardButton.WithUrl("Страница кафедры","https://istu.ru/department/kafedra-programmnoe-obespechenie"),
+                                                    },
+                                                });
 
-                                        await botClient.SendTextMessageAsync(
-                                        chat.Id,
-                                        "Нажмите на кнопку для перехода на страницу кафедры",
-                                        replyMarkup: siteKeyboard);
+                                            await _botClient.SendTextMessageAsync(
+                                            chat.Id,
+                                            "Нажмите на кнопку для перехода на страницу кафедры",
+                                            replyMarkup: siteKeyboard);
 
-                                        break;
-                                    }
+                                            return;
+                                        }
+
+                                        if (message.Text == "Вот список вопросов:")
+                                        {
+                                            flag = 3;
+                                            await botClient.SendTextMessageAsync(
+                                                chat.Id,
+                                                "Вот список вопросов:" +
+                                                "1)Можно ли дистанционно закрывать сессии ? " +
+                                                "2)Где получить справку об обучении в вузе ? " +
+                                                "3)Что нужно сделать, чтобы обновили информацию в личном кабинете?" +
+                                                "4)Где можно посмотреть даты сессий и расписание занятий?" +
+                                                "5)Каким образом можно оформить пропуск / допуск для прохода в корпусы ИжГТУ ? " +
+                                                "6)Где и как получить студенческий билет?" +
+                                                "7)Какие сроки по сдаче нормоконтроля, реферата, учётной карточки, проверки на заимствование?" +
+                                                "8)Как выбрать научного руководителя для написания ВКР ? " +
+                                                "9)Как и где можно заказать справку-вызов ? ",
+                                                replyToMessageId: message.MessageId);
+
+                                            break;
+                                        }
 
 
-                                    if (message.Text == "Сотрудник УВП")
-                                    {
-                                        var replyKeyboard = new ReplyKeyboardMarkup(
-                                            new List<KeyboardButton[]>()
-                                            {
-                                                new KeyboardButton[]
+
+                                        if (message.Text == "Сотрудник УВП")
+                                        {
+                                            flag = 3;
+                                            var replyKeyboard = new ReplyKeyboardMarkup(
+                                                new List<KeyboardButton[]>()
                                                 {
-                                                    new KeyboardButton("Редaктировать контакты преподавателей"),
-                                                    new KeyboardButton("Редактировать часто задаваемые вопросы"),
-                                                },
-                                                new KeyboardButton[]
-                                                {
-                                                    new KeyboardButton("Добавить расписание экзаменов"),
-                                                    new KeyboardButton("Страница кафедры"),
-                                                },
-                                                new KeyboardButton[]
-                                                {
-                                                    new KeyboardButton("До свидания")
+                                                    new KeyboardButton[]
+                                                    {
+                                                        new KeyboardButton("Редaктировать контакты преподавателей"),
+                                                        new KeyboardButton("Редактировать часто задаваемые вопросы"),
+                                                    },
+                                                    new KeyboardButton[]
+                                                    {
+                                                        new KeyboardButton("Добавить расписание экзаменов"),
+                                                        new KeyboardButton("Страница кафедры"),
+                                                    },
+                                                    new KeyboardButton[]
+                                                    {
+                                                        new KeyboardButton("До свидания")
+                                                    }
                                                 }
-                                            }
-                                        )
-                                        { ResizeKeyboard = true, };
+                                            )
+                                            { ResizeKeyboard = true, };
 
-                                        await botClient.SendTextMessageAsync(
-                                            chat.Id,
-                                            "Вы вошли как сотрудник УВП.",
-                                            replyMarkup: replyKeyboard
+                                            await botClient.SendTextMessageAsync(
+                                                chat.Id,
+                                                "Вы вошли как сотрудник УВП.",
+                                                replyMarkup: replyKeyboard
                                         );
 
                                         break;
                                     }
 
-                                    if (message.Text == "Редактировать часто задаваемые вопросы:")
+                                    if (message.Text == "Вот список вопросов:")
                                     {
+                                        flag = 4;
                                         await botClient.SendTextMessageAsync(
                                             chat.Id,
-                                            "7 или 8? 5 или 6?",
-                                            replyToMessageId: message.MessageId
-                                        );
+                                            "Вот список вопросов:"+
+                                            "1)Можно ли дистанционно закрывать сессии ? " +
+                                            "2)Где получить справку об обучении в вузе ? " +
+                                            "3)Что нужно сделать, чтобы обновили информацию в личном кабинете?" +
+                                            "4)Где можно посмотреть даты сессий и расписание занятий?" +
+                                            "5)Каким образом можно оформить пропуск / допуск для прохода в корпусы ИжГТУ ? " +
+                                            "6)Где и как получить студенческий билет?" +
+                                            "7)Какие сроки по сдаче нормоконтроля, реферата, учётной карточки, проверки на заимствование?" +
+                                            "8)Как выбрать научного руководителя для написания ВКР ? " +
+                                            "9)Как и где можно заказать справку-вызов ? ",
+                                            replyToMessageId: message.MessageId);
 
                                         break;
                                     }
@@ -315,9 +477,9 @@ namespace Bot_Telegram
                                 // Data - это придуманный нами id кнопки, мы его указывали в параметре
                                 // callbackData при создании кнопок. У меня это button1, button2 и button3
 
-                                case ("Bachelor"): {
+                                case ("Bachelor"): 
                                         await botClient.AnswerCallbackQueryAsync(callbackQuery.Id);
-                                        var magKeyboard = new ReplyKeyboardMarkup
+                                        var bachelorKeyboard = new ReplyKeyboardMarkup
                                         (
                                             new List<KeyboardButton[]>()
                                             {
@@ -334,20 +496,19 @@ namespace Bot_Telegram
                                                 },
                                             }
                                         )
+
                                         { ResizeKeyboard = true };
 
                                         await
                                             botClient.SendTextMessageAsync(
                                             chat.Id,
                                             $"Вы выбрали {callbackQuery.Data}",
-                                            replyMarkup: magKeyboard,
-                                            allowSendingWithoutReply: true
-                                        );
-                                    }
+                                            replyMarkup: bachelorKeyboard,
+                                            allowSendingWithoutReply: true);
+                                   
                                     break;
 
                                 case ("Magistr"):
-                                    {
                                         await botClient.AnswerCallbackQueryAsync(callbackQuery.Id);
                                             var magKeyboard = new ReplyKeyboardMarkup
                                             (
@@ -356,6 +517,7 @@ namespace Bot_Telegram
                                                 new KeyboardButton[]
                                                 {
                                                     new KeyboardButton("Расписание экзаменов"),
+                                                   
                                                     new KeyboardButton("Контакты преподавателей"),
                                                 },
                                                 new KeyboardButton[]
@@ -364,8 +526,8 @@ namespace Bot_Telegram
                                                     new KeyboardButton("Страница кафедры"),
                                                     new KeyboardButton("Назад"),
                                                 },
-                                                }
-                                            )
+                                                })
+
                                             { ResizeKeyboard = true };
 
                                         await 
@@ -373,40 +535,12 @@ namespace Bot_Telegram
                                             chat.Id,
                                             text: $"Вы выбрали {callbackQuery.Data}",
                                             replyMarkup: magKeyboard,
-                                            allowSendingWithoutReply: true
-                                        );
-                                    }
+                                            allowSendingWithoutReply: true); 
                                     break;
 
-                                case ("Bachelo"):
+                                case ("1"):
                                     {
-                                        await botClient.AnswerCallbackQueryAsync(callbackQuery.Id);
-                                        var magKeyboard = new ReplyKeyboardMarkup
-                                        (
-                                            new List<KeyboardButton[]>()
-                                            {
-                                                new KeyboardButton[]
-                                                {
-                                                    new KeyboardButton("Расписание экзаменов"),
-                                                    new KeyboardButton("Контакты преподавателей"),
-                                                },
-                                                new KeyboardButton[]
-                                                {
-                                                    new KeyboardButton("Часто задаваемые вопросы"),
-                                                    new KeyboardButton("Страница кафедры"),
-                                                    new KeyboardButton("Назад"),
-                                                },
-                                            }
-                                        )
-                                        { ResizeKeyboard = true };
 
-                                        await
-                                            botClient.SendTextMessageAsync(
-                                            chat.Id,
-                                            $"Вы выбрали {callbackQuery.Data}",
-                                            replyMarkup: magKeyboard,
-                                            allowSendingWithoutReply: true
-                                        );
                                     }
                                     break;
                             }
@@ -417,7 +551,6 @@ namespace Bot_Telegram
                     #endregion
                 }
             }
-            // huy
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
