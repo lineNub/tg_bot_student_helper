@@ -227,7 +227,7 @@ namespace Bot_Telegram
 
                                         await botClient.SendTextMessageAsync(
                                         chat.Id,
-                                        "Нажмите на кнопку для перехода на страницу кафедры",
+                                        "Нажмите на кнопку для перехода на страницу кафедры парпарпарапраптаптатаноаопаиаывва",
                                         replyMarkup: siteKeyboard);
 
                                         break;
@@ -439,7 +439,7 @@ namespace Bot_Telegram
             }
 
             return "";
-            //hjn tr,ffffffk
+            
         }
     }
 }
