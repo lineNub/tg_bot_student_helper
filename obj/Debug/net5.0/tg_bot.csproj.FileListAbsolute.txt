@@ -39,3 +39,4 @@ H:\TG_BOT_CSHARP\tg_bot_student_helper\obj\Debug\net5.0\tg_bot.dll
 H:\TG_BOT_CSHARP\tg_bot_student_helper\obj\Debug\net5.0\ref\tg_bot.dll
 H:\TG_BOT_CSHARP\tg_bot_student_helper\obj\Debug\net5.0\tg_bot.pdb
 H:\TG_BOT_CSHARP\tg_bot_student_helper\obj\Debug\net5.0\tg_bot.genruntimeconfig.cache
+H:\TG_BOT_CSHARP\tg_bot_student_helper\obj\Debug\net5.0\tg_bot.csproj.AssemblyReference.cache
