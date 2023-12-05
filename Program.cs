@@ -474,11 +474,14 @@ namespace Bot_Telegram
                             var chat = callbackQuery.Message.Chat;
 
                             // Добавляем блок switch для проверки кнопок
-                            switch (callbackQuery.Data) {
+                            switch (callbackQuery.Data)
+                            {
                                 // Data - это придуманный нами id кнопки, мы его указывали в параметре
                                 // callbackData при создании кнопок. У меня это button1, button2 и button3
 
+
                                 case ("Bachelor"): 
+
                                         await botClient.AnswerCallbackQueryAsync(callbackQuery.Id);
                                         var bachelorKeyboard = new ReplyKeyboardMarkup
                                         (
@@ -518,7 +521,6 @@ namespace Bot_Telegram
                                                 new KeyboardButton[]
                                                 {
                                                     new KeyboardButton("Расписание экзаменов"),
-                                                   
                                                     new KeyboardButton("Контакты преподавателей"),
                                                 },
                                                 new KeyboardButton[]
@@ -545,9 +547,6 @@ namespace Bot_Telegram
                                     }
                                     break;
                             }
-                            break;
-
-
                     }
                     #endregion
                 }
