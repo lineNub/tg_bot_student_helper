@@ -1,25 +1,27 @@
 {
   "format": 1,
   "restore": {
-    "C:\\_учеба\\tg_bot_student_helper\\tg_bot.csproj": {}
+    "H:\\TG_BOT_CSHARP\\tg_bot_student_helper\\tg_bot.csproj": {}
   },
   "projects": {
-    "C:\\_учеба\\tg_bot_student_helper\\tg_bot.csproj": {
+    "H:\\TG_BOT_CSHARP\\tg_bot_student_helper\\tg_bot.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\_учеба\\tg_bot_student_helper\\tg_bot.csproj",
+        "projectUniqueName": "H:\\TG_BOT_CSHARP\\tg_bot_student_helper\\tg_bot.csproj",
         "projectName": "tg_bot",
-        "projectPath": "C:\\_учеба\\tg_bot_student_helper\\tg_bot.csproj",
-        "packagesPath": "C:\\Users\\line\\.nuget\\packages\\",
-        "outputPath": "C:\\_учеба\\tg_bot_student_helper\\obj\\",
+        "projectPath": "H:\\TG_BOT_CSHARP\\tg_bot_student_helper\\tg_bot.csproj",
+        "packagesPath": "C:\\Users\\Егор\\.nuget\\packages\\",
+        "outputPath": "H:\\TG_BOT_CSHARP\\tg_bot_student_helper\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages",
+          "C:\\Program Files (x86)\\Microsoft\\Xamarin\\NuGet\\"
         ],
         "configFilePaths": [
-          "C:\\Users\\line\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\Егор\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Xamarin.Offline.config"
         ],
         "originalTargetFrameworks": [
           "net5.0"
@@ -73,35 +75,16 @@
             "net47",
             "net471",
             "net472",
-            "net48",
-            "net481"
+            "net48"
           ],
           "assetTargetFallback": true,
           "warn": true,
-          "downloadDependencies": [
-            {
-              "name": "Microsoft.AspNetCore.App.Ref",
-              "version": "[5.0.0, 5.0.0]"
-            },
-            {
-              "name": "Microsoft.NETCore.App.Host.win-x64",
-              "version": "[5.0.17, 5.0.17]"
-            },
-            {
-              "name": "Microsoft.NETCore.App.Ref",
-              "version": "[5.0.0, 5.0.0]"
-            },
-            {
-              "name": "Microsoft.WindowsDesktop.App.Ref",
-              "version": "[5.0.0, 5.0.0]"
-            }
-          ],
           "frameworkReferences": {
             "Microsoft.NETCore.App": {
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.304\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.416\\RuntimeIdentifierGraph.json"
         }
       }
     }
