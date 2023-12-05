@@ -227,7 +227,7 @@ namespace Bot_Telegram
 
                                         await botClient.SendTextMessageAsync(
                                         chat.Id,
-                                        "Нажмите на кнопку для перехода на страницу кафедры парпарпарапраптаптатаноаопаиаывва",
+                                        "Нажмите на кнопку для перехода на страницу кафедры",
                                         replyMarkup: siteKeyboard);
 
                                         break;
@@ -377,8 +377,42 @@ namespace Bot_Telegram
                                         );
                                     }
                                     break;
+
+                                case ("Bachelo"):
+                                    {
+                                        await botClient.AnswerCallbackQueryAsync(callbackQuery.Id);
+                                        var magKeyboard = new ReplyKeyboardMarkup
+                                        (
+                                            new List<KeyboardButton[]>()
+                                            {
+                                                new KeyboardButton[]
+                                                {
+                                                    new KeyboardButton("Расписание экзаменов"),
+                                                    new KeyboardButton("Контакты преподавателей"),
+                                                },
+                                                new KeyboardButton[]
+                                                {
+                                                    new KeyboardButton("Часто задаваемые вопросы"),
+                                                    new KeyboardButton("Страница кафедры"),
+                                                    new KeyboardButton("Назад"),
+                                                },
+                                            }
+                                        )
+                                        { ResizeKeyboard = true };
+
+                                        await
+                                            botClient.SendTextMessageAsync(
+                                            chat.Id,
+                                            $"Вы выбрали {callbackQuery.Data}",
+                                            replyMarkup: magKeyboard,
+                                            allowSendingWithoutReply: true
+                                        );
+                                    }
+                                    break;
                             }
                             break;
+
+
                     }
                     #endregion
                 }
