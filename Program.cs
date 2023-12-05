@@ -379,7 +379,7 @@ namespace Bot_Telegram
                     #endregion
                 }
             }
-            // huy
+            
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
