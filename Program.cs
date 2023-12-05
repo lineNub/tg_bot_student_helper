@@ -87,6 +87,7 @@ namespace Bot_Telegram
 
         private static async Task UpdateHandler(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken){
             var flag = 0;
+            var check = 0;
             // Обязательно ставим блок try-catch, чтобы наш бот не "падал" в случае каких-либо ошибок
             try{
                 // Сразу же ставим конструкцию switch, чтобы обрабатывать приходящие Update
@@ -109,38 +110,61 @@ namespace Bot_Telegram
                             // Добавляем проверку на тип Message
                             switch (message.Type){     
                                 // Тут понятно, текстовый тип
-                                case MessageType.Text:{     
-                                        // тут обрабатываем команду /start, остальные аналогично
-                                        if (message.Text == "/start" ||  message.Text == "Старт")
+                                case MessageType.Text:{
+                                        // тут обрабатываем команду /start, остальные аналогичн
+                                        if (message.Text == "/start")
                                         {
-                                            flag = 1;
                                             await InsertIntoLogs(chat.Id, 1);
-
                                             var startKeyboard = new ReplyKeyboardMarkup(
-                                            new List<KeyboardButton[]>()
-                                            {
-                                                new KeyboardButton[]
-                                                {
-                                                    new KeyboardButton("Студент ЗФО"),
-                                                    new KeyboardButton("Сотрудник УВП"),
-                                                },
+                                             new List<KeyboardButton[]>()
+                                              {
+                                                    new KeyboardButton[]
+                                                    {
+                                                        new KeyboardButton("Студент ЗФО"),
+                                                        new KeyboardButton("Сотрудник УВП"),
+                                                    },
 
-                                                new KeyboardButton[]
-                                                {
-                                                    new KeyboardButton("До свидания"),
-                                                },
-                                            })
+                                                    new KeyboardButton[]
+                                                    {
+                                                        new KeyboardButton("До свидания"),
+                                                    },
+                                             })
                                             { ResizeKeyboard = true, };
                                             startKeyboard.OneTimeKeyboard = true;
 
                                             await botClient.SendTextMessageAsync(
                                                 chat.Id,
-                                                "Добро пожаловать, " + $"{message.From.FirstName}" + "!\n" +
+                                                "Добро пожаловать, " + $"{message.From.FirstName}" + $"{message.From.LastName}"+"!\n" +
                                                 "Я  - бот-помощник, чтобы использовать мой функционал выбирете, кем вы являетесь:",
                                                 replyMarkup: startKeyboard);
 
-
                                             break;
+
+                                        }
+                                        if (message.Text == "Войти")
+                                        {
+                                            if (check == 1)
+                                            {
+                                                flag = 1;
+
+                                                //Сюда нужно добавить проверку данных, ввелённых пользователем с данными из БД
+                                                //...
+                                                await botClient.SendTextMessageAsync(
+                                                    chat.Id,
+                                                    $"{user.FirstName}"+$"{user.LastName}"+", вы успешно вошли как студент ЗФО!");
+                                                break;
+                                            }
+
+                                            else if(check == 2)
+                                            {
+                                                //Сюда нужно добавить проверку данных, введённых пользователем с данными в БД
+                                                //...
+                                                flag = 1;
+                                                await botClient.SendTextMessageAsync(
+                                                    chat.Id,
+                                                    $"{user.FirstName}"+$"{user.LastName}"+", вы успешно вошли как сотрудник УВП!");
+                                                break;
+                                            }
                                         }
 
                                         if (message.Text == "До свидания")
@@ -166,33 +190,8 @@ namespace Bot_Telegram
 
                                         if (message.Text == "Назад")
                                         {
+
                                             if (flag == 1)
-                                            {
-                                              var backKeyboard = new ReplyKeyboardMarkup(
-                                              new List<KeyboardButton[]>()
-                                              {
-                                                    new KeyboardButton[]
-                                                    {
-                                                        new KeyboardButton("Студент ЗФО"),
-                                                        new KeyboardButton("Сотрудник УВП"),
-                                                    },
-
-                                                    new KeyboardButton[]
-                                                    {
-                                                        new KeyboardButton("До свидания"),
-                                                    },
-                                              })
-                                                { ResizeKeyboard = true, };
-                                                await botClient.SendTextMessageAsync(
-                                                    chat.Id,
-                                                    "",
-                                                    replyMarkup: backKeyboard
-                                                );
-
-                                                break;
-                                            }
-
-                                            if (flag == 2)
                                             {
                                               var backKeyboard = new ReplyKeyboardMarkup(
                                               new List<KeyboardButton[]>()
@@ -222,9 +221,10 @@ namespace Bot_Telegram
 
                                         }
 
-                                        if (message.Text == "Студент ЗФО")
+                                        if (message.Text == ($"{user.FirstName}" + $"{user.LastName}" + ", вы успешно вошли как студент ЗФО!"))
                                         {
-                                            flag = 2;
+                                            check = 1;
+                                            flag = 1;
                                             var studentKeyboard = new InlineKeyboardMarkup(
                                                 new List<InlineKeyboardButton[]>()
                                                 {
@@ -386,8 +386,9 @@ namespace Bot_Telegram
 
 
 
-                                        if (message.Text == "Сотрудник УВП")
+                                        if (message.Text == ($"{user.FirstName}" + $"{user.LastName}" + ", вы успешно вошли как сотрудник УВП!"))
                                         {
+                                            check = 2;
                                             flag = 3;
                                             var replyKeyboard = new ReplyKeyboardMarkup(
                                                 new List<KeyboardButton[]>()
