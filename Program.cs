@@ -311,11 +311,13 @@ namespace Bot_Telegram
                             var chat = callbackQuery.Message.Chat;
 
                             // Добавляем блок switch для проверки кнопок
-                            switch (callbackQuery.Data) {
+                            switch (callbackQuery.Data)
+                            {
                                 // Data - это придуманный нами id кнопки, мы его указывали в параметре
                                 // callbackData при создании кнопок. У меня это button1, button2 и button3
 
-                                case ("Bachelor"): {
+                                case ("Bachelor"):
+                                    {
                                         await botClient.AnswerCallbackQueryAsync(callbackQuery.Id);
                                         var magKeyboard = new ReplyKeyboardMarkup
                                         (
@@ -349,38 +351,6 @@ namespace Bot_Telegram
                                 case ("Magistr"):
                                     {
                                         await botClient.AnswerCallbackQueryAsync(callbackQuery.Id);
-                                            var magKeyboard = new ReplyKeyboardMarkup
-                                            (
-                                                new List<KeyboardButton[]>()
-                                                {
-                                                new KeyboardButton[]
-                                                {
-                                                    new KeyboardButton("Расписание экзаменов"),
-                                                    new KeyboardButton("Контакты преподавателей"),
-                                                },
-                                                new KeyboardButton[]
-                                                {
-                                                    new KeyboardButton("Часто задаваемые вопросы"),
-                                                    new KeyboardButton("Страница кафедры"),
-                                                    new KeyboardButton("Назад"),
-                                                },
-                                                }
-                                            )
-                                            { ResizeKeyboard = true };
-
-                                        await 
-                                            botClient.SendTextMessageAsync(
-                                            chat.Id,
-                                            text: $"Вы выбрали {callbackQuery.Data}",
-                                            replyMarkup: magKeyboard,
-                                            allowSendingWithoutReply: true
-                                        );
-                                    }
-                                    break;
-
-                                case ("Bachelo"):
-                                    {
-                                        await botClient.AnswerCallbackQueryAsync(callbackQuery.Id);
                                         var magKeyboard = new ReplyKeyboardMarkup
                                         (
                                             new List<KeyboardButton[]>()
@@ -403,16 +373,13 @@ namespace Bot_Telegram
                                         await
                                             botClient.SendTextMessageAsync(
                                             chat.Id,
-                                            $"Вы выбрали {callbackQuery.Data}",
+                                            text: $"Вы выбрали {callbackQuery.Data}",
                                             replyMarkup: magKeyboard,
                                             allowSendingWithoutReply: true
                                         );
                                     }
                                     break;
                             }
-                            break;
-
-
                     }
                     #endregion
                 }
