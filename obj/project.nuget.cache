@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "Ly9Y/tyEwJ862ilBUfdodaqvZ849o13Kxi+w9fGalN8jI/mW8cTJHycC8iSCAdehwATQouZ7db9tB4JZRK2pXg==",
+  "dgSpecHash": "3hWQc1lTqr4cySKPe7F0ExFw+uauoDSBFWFHGLmu3G2ldhi1SowmW0Weq1FuB40qxDQg0PZDE6IUXexhp+HKHw==",
   "success": true,
-  "projectFilePath": "C:\\_учеба\\_tg_bot\\tg_bot\\tg_bot.csproj",
+  "projectFilePath": "C:\\_учеба\\tg_bot_student_helper\\tg_bot.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\line\\.nuget\\packages\\humanizer.core\\2.8.26\\humanizer.core.2.8.26.nupkg.sha512",
     "C:\\Users\\line\\.nuget\\packages\\microsoft.csharp\\4.7.0\\microsoft.csharp.4.7.0.nupkg.sha512",
