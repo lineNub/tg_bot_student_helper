@@ -1,0 +1,1 @@
+Host=26.9.70.246;Port=5432;Username=postgres;Password=line;Database=tg_bot

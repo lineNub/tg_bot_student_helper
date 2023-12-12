@@ -549,6 +549,7 @@ namespace Bot_Telegram
                                     break;
                             }
                     }
+                        break;
                     #endregion
                 }
             }
