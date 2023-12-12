@@ -17,6 +17,8 @@ using Update = Telegram.Bot.Types.Update;
 using Telegram.Bot.Types.InlineQueryResults;
 using Npgsql;
 using Npgsql.EntityFrameworkCore.PostgreSQL;
+using IronPython.Hosting;
+using Microsoft.Scripting.Hosting;
 
 namespace Bot_Telegram
 {

@@ -1,0 +1,1 @@
+Host=localhost;Username=postgres;Password=line;Database=tg_bot
