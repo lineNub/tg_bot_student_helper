@@ -19,6 +19,7 @@ using Npgsql;
 using Npgsql.EntityFrameworkCore.PostgreSQL;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
+
 namespace Bot_Telegram
 {
     class Program
