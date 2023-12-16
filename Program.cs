@@ -36,13 +36,13 @@ namespace Bot_Telegram
         
         public static async Task TelegramBotInit()
         {
-            telegramBotToken = System.IO.File.ReadAllText(@"C:\\_учеба\\_tg_bot\\tg_bot\\tg_token.txt");
+            telegramBotToken = System.IO.File.ReadAllText(@"H:\TG_BOT_CSHARP\tg_bot_student_helper\\tg_token.txt");
             
             BotClient = new TelegramBotClient(telegramBotToken); // Присваиваем нашей переменной значение, в параметре передаем Token, полученный от BotFather
 
             ReceiverOptions = new ReceiverOptions // Также присваем значение настройкам бота
             {
-                AllowedUpdates = new[] // Тут указываем типы получаемых Update`ов, о них подробнее расказано тут https://core.telegram.org/bots/api#update
+                AllowedUpdates = new[] 
                 {
                     UpdateType.Message,// Сообщения (текст, фото/видео, голосовые/видео сообщения и т.д.)
                     UpdateType.CallbackQuery// ЁБАННЫЕ КОЛЛБЕКИ
@@ -65,7 +65,11 @@ namespace Bot_Telegram
 
         public static async Task NpgsqlInit()
         {
+
             connectionString = System.IO.File.ReadAllText(@"C:\\_учеба\\_tg_bot\\tg_bot\\cnt_string.txt");
+
+            connectionString = System.IO.File.ReadAllText(@"H:\TG_BOT_CSHARP\tg_bot_student_helper\\cnt_string.txt");
+
             sql = new NpgsqlConnection(connectionString);
         }
 
