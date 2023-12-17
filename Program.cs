@@ -377,6 +377,25 @@ namespace Bot_Telegram
                                             return;
                                         }
 
+                                        if (message.Text == "Расписание экзаменов")
+                                        {
+                                            var siteKeyboard = new InlineKeyboardMarkup(
+                                                new List<InlineKeyboardButton[]>()
+                                                {
+                                                    new InlineKeyboardButton[]
+                                                    {
+                                                        InlineKeyboardButton.WithUrl("Страница кафедры","https://cs.istu.ru/index.php?project=kaf&page=_process_schedule_extramural_"),
+                                                    },
+                                                });
+
+                                            await _botClient.SendTextMessageAsync(
+                                            chat.Id,
+                                            "Нажмите на кнопку для просмотра расписания",
+                                            replyMarkup: siteKeyboard);
+
+                                            return;
+                                        }
+
                                         if (message.Text == "Вот список вопросов:")
                                         {
                                             flag = 3;
