@@ -148,17 +148,6 @@ namespace Bot_Telegram
                                         }
                                         if (message.Text == "Войти")
                                         {
-                                            if (check == 1)
-                                            {
-                                                flag = 1;
-
-                                                //Сюда нужно добавить проверку данных, ввелённых пользователем с данными из БД
-                                                //...
-                                                await botClient.SendTextMessageAsync(
-                                                    chat.Id,
-                                                    $"{user.FirstName}"+$"{user.LastName}"+", вы успешно вошли как студент ЗФО!");
-                                                break;
-                                            }
 
                                             else if(check == 2)
                                             {
