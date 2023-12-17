@@ -592,6 +592,20 @@ namespace Bot_Telegram
             }
         }
 
+        private static async Task AdminAuth(Message message)
+        { 
+            if (sql.State != ConnectionState.Open)
+            {
+                sql.Open();
+                NpgsqlCommand command = new NpgsqlCommand(
+                    $"DELETE FROM logs WHERE user_id = {message.From.Id.GetHashCode()}" +
+                    $"INSERT INTO logs (user_id, val) VALUES ({message.From.Id.GetHashCode()}, {0})",
+                    sql);
+                await command.ExecuteNonQueryAsync();
+                sql.Close();
+            }
+        }
+
         private static async Task AddFAQ(string text)
         {
             if (sql.State != ConnectionState.Open)
@@ -618,19 +632,7 @@ namespace Bot_Telegram
             }
         }
 
-        private static async Task AdminAuth(Message message)
-        { 
-            if (sql.State != ConnectionState.Open)
-            {
-                sql.Open();
-                NpgsqlCommand command = new NpgsqlCommand(
-                    $"DELETE FROM logs WHERE user_id = {message.From.Id.GetHashCode()}" +
-                    $"INSERT INTO logs (user_id, val) VALUES ({message.From.Id.GetHashCode()}, {0})",
-                    sql);
-                await command.ExecuteNonQueryAsync();
-                sql.Close();
-            }
-        }
+
 
         private static async Task SelectAllTeachers(int teacher_id)
         {
