@@ -278,6 +278,8 @@ namespace Bot_Telegram
                                         if (message.Text == "Контакты преподавателей")
                                         {
                                             flag = 3;
+                                            ScriptEngine engine = Python.CreateEngine();
+                                            engine.ExecuteFile("parser.py");
                                             var schedualKeyboard = new InlineKeyboardMarkup(
                                                new List<InlineKeyboardButton[]>()
                                                {
