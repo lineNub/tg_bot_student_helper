@@ -146,6 +146,7 @@ namespace Bot_Telegram
                                             break;
 
                                         }
+<<<<<<< Updated upstream
                                         if (message.Text == "Войти")
                                         {
 
@@ -160,6 +161,9 @@ namespace Bot_Telegram
                                                 break;
                                             }
                                         }
+=======
+                                      
+>>>>>>> Stashed changes
 
                                         if (message.Text == "До свидания")
                                         {
