@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -32,7 +32,7 @@ namespace Bot_Telegram
         public static ITelegramBotClient BotClient { get => _botClient; set => _botClient = value; }
         public static ReceiverOptions ReceiverOptions { get => _receiverOptions; set => _receiverOptions = value; }
         public static NpgsqlConnection Sql { get => sql; set => sql = value; }
-
+ 
         public static Int16 flag = 0;
         public static Int16 check = 0;
         public static async Task TelegramBotInit()
@@ -69,7 +69,9 @@ namespace Bot_Telegram
             connectionString = System.IO.File.ReadAllText(@"C:\_учеба\tg_bot_student_helper\\cnt_string.txt");
             sql = new NpgsqlConnection(connectionString);
             await sql.OpenAsync();
+
             Console.WriteLine($"Установлено соединение с БД { sql.Database }");
+
             await sql.CloseAsync();
         }
 
@@ -90,9 +92,9 @@ namespace Bot_Telegram
 
         //private static async Auntification()
 
+
         private static async Task UpdateHandler(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
         {
-
             // Обязательно ставим блок try-catch, чтобы наш бот не "падал" в случае каких-либо ошибок
             try
             {
@@ -123,8 +125,6 @@ namespace Bot_Telegram
                                         // тут обрабатываем команду /start, остальные аналогичн
                                         if (message.Text == "/start" || message.Text == "start" || message.Text == "Старт" || message.Text == "старт")
                                         {
-                                            Console.WriteLine($"val is {user.Id} {flag}");
-
                                             var startKeyboard = new ReplyKeyboardMarkup(
                                              new List<KeyboardButton[]>()
                                               {
@@ -585,6 +585,7 @@ namespace Bot_Telegram
             return Task.CompletedTask;
         }
 
+
         #region psql
         private static async Task StudentAuth(Message message, string student_ticket)
         {
@@ -616,7 +617,7 @@ namespace Bot_Telegram
 
         private static async Task AddFAQ(string text)
         {
-            if (sql.State != ConnectionState.Open)
+            if (sql.State == ConnectionState.Closed)
             {
                 sql.Open();
                 NpgsqlCommand command = new NpgsqlCommand(
