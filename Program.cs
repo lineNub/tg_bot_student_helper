@@ -584,8 +584,8 @@ namespace Bot_Telegram
             {
                 sql.Open();
                 NpgsqlCommand command = new NpgsqlCommand(
-                    $"DELETE FROM logs WHERE user_id = {message.From.Id.GetHashCode()}"+
-                    $"INSERT INTO logs (user_id, val) VALUES ('{message.From.Id.GetHashCode()}', {student_ticket})",
+                    $"DELETE FROM logs WHERE user_id = { message.From.Id.GetHashCode() }"+
+                    $"INSERT INTO logs (user_id, val) VALUES ('{ message.From.Id.GetHashCode() }', { student_ticket })",
                     sql);
                 await command.ExecuteNonQueryAsync();
                 sql.Close();
@@ -598,8 +598,8 @@ namespace Bot_Telegram
             {
                 sql.Open();
                 NpgsqlCommand command = new NpgsqlCommand(
-                    $"DELETE FROM logs WHERE user_id = {message.From.Id.GetHashCode()}" +
-                    $"INSERT INTO logs (user_id, val) VALUES ({message.From.Id.GetHashCode()}, {0})",
+                    $"DELETE FROM logs WHERE user_id = { message.From.Id.GetHashCode() }" +
+                    $"INSERT INTO logs (user_id, val) VALUES ({ message.From.Id.GetHashCode() }, { 0 })",
                     sql);
                 await command.ExecuteNonQueryAsync();
                 sql.Close();
@@ -612,7 +612,7 @@ namespace Bot_Telegram
             {
                 sql.Open();
                 NpgsqlCommand command = new NpgsqlCommand(
-                    $"INSERT INTO questions (text) VALUES ({text})",
+                    $"INSERT INTO questions (text) VALUES ({ text })",
                     sql);
                 await command.ExecuteNonQueryAsync();
                 sql.Close();
@@ -625,7 +625,7 @@ namespace Bot_Telegram
             {
                 sql.Open();
                 NpgsqlCommand command = new NpgsqlCommand(
-                    $"INSERT INTO questions (text, status) VALUES ({text}, 'Не решен')",
+                    $"INSERT INTO questions (text, status) VALUES ({ text }, 'Не решен')",
                     sql);
                 await command.ExecuteNonQueryAsync();
                 sql.Close();
@@ -653,7 +653,7 @@ namespace Bot_Telegram
             if (sql.State != ConnectionState.Open)
             {
                 sql.Open();
-                NpgsqlCommand select = new NpgsqlCommand($"SELECT fullname FROM teachers WHERE id = {teacher_id.GetHashCode()}", sql);
+                NpgsqlCommand select = new NpgsqlCommand($"SELECT fullname FROM teachers WHERE id = { teacher_id.GetHashCode() }", sql);
                 //int rows_changed = await select.ExecuteNonQueryAsync();//Если запрос не возвращает таблицу
                 NpgsqlDataReader reader = select.ExecuteReader();//Если запрос возвращает таблицу
 
