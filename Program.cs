@@ -632,8 +632,6 @@ namespace Bot_Telegram
             }
         }
 
-
-
         private static async Task SelectAllTeachers(int teacher_id)
         {
             if (sql.State != ConnectionState.Open)
