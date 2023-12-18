@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -32,13 +32,13 @@ namespace Bot_Telegram
         public static ITelegramBotClient BotClient { get => _botClient; set => _botClient = value; }
         public static ReceiverOptions ReceiverOptions { get => _receiverOptions; set => _receiverOptions = value; }
         public static NpgsqlConnection Sql { get => sql; set => sql = value; }
-        
+ 
         public static Int16 flag = 0;
         public static Int16 check = 0;
         public static async Task TelegramBotInit()
         {
             telegramBotToken = System.IO.File.ReadAllText(@"C:\\_учеба\\_tg_bot\\tg_bot\\tg_token.txt");
-            
+
             BotClient = new TelegramBotClient(telegramBotToken); // Присваиваем нашей переменной значение, в параметре передаем Token, полученный от BotFather
 
             ReceiverOptions = new ReceiverOptions // Также присваем значение настройкам бота
@@ -69,7 +69,9 @@ namespace Bot_Telegram
             connectionString = System.IO.File.ReadAllText(@"C:\_учеба\tg_bot_student_helper\\cnt_string.txt");
             sql = new NpgsqlConnection(connectionString);
             await sql.OpenAsync();
+
             Console.WriteLine($"Установлено соединение с БД { sql.Database }");
+
             await sql.CloseAsync();
         }
 
@@ -90,12 +92,15 @@ namespace Bot_Telegram
 
         //private static async Auntification()
 
-        private static async Task UpdateHandler(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken){
-            
+
+        private static async Task UpdateHandler(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
+        {
             // Обязательно ставим блок try-catch, чтобы наш бот не "падал" в случае каких-либо ошибок
-            try{
+            try
+            {
                 // Сразу же ставим конструкцию switch, чтобы обрабатывать приходящие Update
-                switch (update.Type) {
+                switch (update.Type)
+                {
                     #region message_updates
                     case UpdateType.Message:
                         {
@@ -112,14 +117,14 @@ namespace Bot_Telegram
                             var chat = message.Chat;
 
                             // Добавляем проверку на тип Message
-                            switch (message.Type){     
+                            switch (message.Type)
+                            {
                                 // Тут понятно, текстовый тип
-                                case MessageType.Text: {
+                                case MessageType.Text:
+                                    {
                                         // тут обрабатываем команду /start, остальные аналогичн
                                         if (message.Text == "/start" || message.Text == "start" || message.Text == "Старт" || message.Text == "старт")
                                         {
-                                            Console.WriteLine($"val is {user.Id} {flag}");
-
                                             var startKeyboard = new ReplyKeyboardMarkup(
                                              new List<KeyboardButton[]>()
                                               {
@@ -139,7 +144,7 @@ namespace Bot_Telegram
 
                                             await botClient.SendTextMessageAsync(
                                                 chat.Id,
-                                                "Добро пожаловать, " + $"{message.From.FirstName}" + $"{message.From.LastName}"+"!\n" +
+                                                "Добро пожаловать, " + $"{message.From.FirstName}" + $"{message.From.LastName}" + "!\n" +
                                                 "Я  - бот-помощник, чтобы использовать мой функционал выбирете, кем вы являетесь:",
                                                 replyMarkup: startKeyboard);
 
@@ -157,18 +162,18 @@ namespace Bot_Telegram
                                                 //...
                                                 await botClient.SendTextMessageAsync(
                                                     chat.Id,
-                                                    $"{user.FirstName}"+$"{user.LastName}"+", вы успешно вошли как студент ЗФО!");
+                                                    $"{user.FirstName}" + $"{user.LastName}" + ", вы успешно вошли как студент ЗФО!");
                                                 break;
                                             }
 
-                                            else if(check == 2)
+                                            else if (check == 2)
                                             {
                                                 //Сюда нужно добавить проверку данных, введённых пользователем с данными в БД
                                                 //...
                                                 flag = 1;
                                                 await botClient.SendTextMessageAsync(
                                                     chat.Id,
-                                                    $"{user.FirstName}"+$"{user.LastName}"+", вы успешно вошли как сотрудник УВП!");
+                                                    $"{user.FirstName}" + $"{user.LastName}" + ", вы успешно вошли как сотрудник УВП!");
                                                 break;
                                             }
                                         }
@@ -199,9 +204,9 @@ namespace Bot_Telegram
 
                                             if (flag == 1)
                                             {
-                                              var backKeyboard = new ReplyKeyboardMarkup(
-                                              new List<KeyboardButton[]>()
-                                              {
+                                                var backKeyboard = new ReplyKeyboardMarkup(
+                                                new List<KeyboardButton[]>()
+                                                {
                                                     new KeyboardButton[]
                                                     {
                                                         new KeyboardButton("Студент ЗФО"),
@@ -212,7 +217,7 @@ namespace Bot_Telegram
                                                     {
                                                         new KeyboardButton("До свидания"),
                                                     },
-                                              })
+                                                })
                                                 { ResizeKeyboard = true, };
                                                 await botClient.SendTextMessageAsync(
                                                     chat.Id,
@@ -273,6 +278,8 @@ namespace Bot_Telegram
                                         if (message.Text == "Контакты преподавателей")
                                         {
                                             flag = 3;
+                                            ScriptEngine engine = Python.CreateEngine();
+                                            engine.ExecuteFile("parser.py");
                                             var schedualKeyboard = new InlineKeyboardMarkup(
                                                new List<InlineKeyboardButton[]>()
                                                {
@@ -326,8 +333,8 @@ namespace Bot_Telegram
 
                                             await botClient.SendTextMessageAsync(
                                                 chat.Id,
-                                                "Вот список преподавателей:"+
-                                                "1)Леонов Михаил Витальевич"+
+                                                "Вот список преподавателей:" +
+                                                "1)Леонов Михаил Витальевич" +
                                                 "2)Аль аккад Мхд айман" +
                                                 "3)Архипов Игорь Олегович" +
                                                 "4)Брычкина Мария Сергеевна" +
@@ -365,6 +372,25 @@ namespace Bot_Telegram
                                             await _botClient.SendTextMessageAsync(
                                             chat.Id,
                                             "Нажмите на кнопку для перехода на страницу кафедры",
+                                            replyMarkup: siteKeyboard);
+
+                                            return;
+                                        }
+
+                                        if (message.Text == "Расписание экзаменов")
+                                        {
+                                            var siteKeyboard = new InlineKeyboardMarkup(
+                                                new List<InlineKeyboardButton[]>()
+                                                {
+                                                    new InlineKeyboardButton[]
+                                                    {
+                                                        InlineKeyboardButton.WithUrl("Страница кафедры","https://cs.istu.ru/index.php?project=kaf&page=_process_schedule_extramural_"),
+                                                    },
+                                                });
+
+                                            await _botClient.SendTextMessageAsync(
+                                            chat.Id,
+                                            "Нажмите на кнопку для просмотра расписания",
                                             replyMarkup: siteKeyboard);
 
                                             return;
@@ -422,47 +448,48 @@ namespace Bot_Telegram
                                                 replyMarkup: replyKeyboard
                                         );
 
+                                            break;
+                                        }
+
+                                        if (message.Text == "Вот список вопросов:")
+                                        {
+                                            flag = 4;
+                                            await botClient.SendTextMessageAsync(
+                                                chat.Id,
+                                                "Вот список вопросов:" +
+                                                "1)Можно ли дистанционно закрывать сессии ? " +
+                                                "2)Где получить справку об обучении в вузе ? " +
+                                                "3)Что нужно сделать, чтобы обновили информацию в личном кабинете?" +
+                                                "4)Где можно посмотреть даты сессий и расписание занятий?" +
+                                                "5)Каким образом можно оформить пропуск / допуск для прохода в корпусы ИжГТУ ? " +
+                                                "6)Где и как получить студенческий билет?" +
+                                                "7)Какие сроки по сдаче нормоконтроля, реферата, учётной карточки, проверки на заимствование?" +
+                                                "8)Как выбрать научного руководителя для написания ВКР ? " +
+                                                "9)Как и где можно заказать справку-вызов ? ",
+                                                replyToMessageId: message.MessageId);
+
+                                            break;
+                                        }
+
                                         break;
                                     }
-
-                                    if (message.Text == "Вот список вопросов:")
-                                    {
-                                        flag = 4;
-                                        await botClient.SendTextMessageAsync(
-                                            chat.Id,
-                                            "Вот список вопросов:"+
-                                            "1)Можно ли дистанционно закрывать сессии ? " +
-                                            "2)Где получить справку об обучении в вузе ? " +
-                                            "3)Что нужно сделать, чтобы обновили информацию в личном кабинете?" +
-                                            "4)Где можно посмотреть даты сессий и расписание занятий?" +
-                                            "5)Каким образом можно оформить пропуск / допуск для прохода в корпусы ИжГТУ ? " +
-                                            "6)Где и как получить студенческий билет?" +
-                                            "7)Какие сроки по сдаче нормоконтроля, реферата, учётной карточки, проверки на заимствование?" +
-                                            "8)Как выбрать научного руководителя для написания ВКР ? " +
-                                            "9)Как и где можно заказать справку-вызов ? ",
-                                            replyToMessageId: message.MessageId);
-
-                                        break;
-                                    }
-
-                                    break;
-                                }
 
                                 default:
-                                {
-                                    await botClient.SendTextMessageAsync(
-                                        chat.Id,
-                                        "Используй только текст!"
-                                    );
-                                    break;
-                                }
+                                    {
+                                        await botClient.SendTextMessageAsync(
+                                            chat.Id,
+                                            "Используй только текст!"
+                                        );
+                                        break;
+                                    }
                             }
-                    }
-                    break;
+                        }
+                        break;
                     #endregion
 
                     #region callback_updates
-                    case UpdateType.CallbackQuery: {
+                    case UpdateType.CallbackQuery:
+                        {
 
                             // Переменная, которая будет содержать в себе всю информацию о кнопке, которую нажали
                             CallbackQuery callbackQuery = update.CallbackQuery;
@@ -485,13 +512,13 @@ namespace Bot_Telegram
                                 // callbackData при создании кнопок. У меня это button1, button2 и button3
 
 
-                                case ("Bachelor"): 
+                                case ("Bachelor"):
 
-                                        await botClient.AnswerCallbackQueryAsync(callbackQuery.Id);
-                                        var bachelorKeyboard = new ReplyKeyboardMarkup
-                                        (
-                                            new List<KeyboardButton[]>()
-                                            {
+                                    await botClient.AnswerCallbackQueryAsync(callbackQuery.Id);
+                                    var bachelorKeyboard = new ReplyKeyboardMarkup
+                                    (
+                                        new List<KeyboardButton[]>()
+                                        {
                                                 new KeyboardButton[]
                                                 {
                                                     new KeyboardButton("Расписание экзаменов"),
@@ -503,26 +530,26 @@ namespace Bot_Telegram
                                                     new KeyboardButton("Страница кафедры"),
                                                     new KeyboardButton("Назад"),
                                                 },
-                                            }
-                                        )
+                                        }
+                                    )
 
-                                        { ResizeKeyboard = true };
+                                    { ResizeKeyboard = true };
 
-                                        await
-                                            botClient.SendTextMessageAsync(
-                                            chat.Id,
-                                            $"Вы выбрали {callbackQuery.Data}",
-                                            replyMarkup: bachelorKeyboard,
-                                            allowSendingWithoutReply: true);
-                                   
+                                    await
+                                        botClient.SendTextMessageAsync(
+                                        chat.Id,
+                                        $"Вы выбрали {callbackQuery.Data}",
+                                        replyMarkup: bachelorKeyboard,
+                                        allowSendingWithoutReply: true);
+
                                     break;
 
                                 case ("Magistr"):
-                                        await botClient.AnswerCallbackQueryAsync(callbackQuery.Id);
-                                            var magKeyboard = new ReplyKeyboardMarkup
-                                            (
-                                                new List<KeyboardButton[]>()
-                                                {
+                                    await botClient.AnswerCallbackQueryAsync(callbackQuery.Id);
+                                    var magKeyboard = new ReplyKeyboardMarkup
+                                    (
+                                        new List<KeyboardButton[]>()
+                                        {
                                                 new KeyboardButton[]
                                                 {
                                                     new KeyboardButton("Расписание экзаменов"),
@@ -534,16 +561,16 @@ namespace Bot_Telegram
                                                     new KeyboardButton("Страница кафедры"),
                                                     new KeyboardButton("Назад"),
                                                 },
-                                                })
+                                        })
 
-                                            { ResizeKeyboard = true };
+                                    { ResizeKeyboard = true };
 
-                                        await 
-                                            botClient.SendTextMessageAsync(
-                                            chat.Id,
-                                            text: $"Вы выбрали {callbackQuery.Data}",
-                                            replyMarkup: magKeyboard,
-                                            allowSendingWithoutReply: true); 
+                                    await
+                                        botClient.SendTextMessageAsync(
+                                        chat.Id,
+                                        text: $"Вы выбрали {callbackQuery.Data}",
+                                        replyMarkup: magKeyboard,
+                                        allowSendingWithoutReply: true);
                                     break;
 
                                 case ("1"):
@@ -553,8 +580,8 @@ namespace Bot_Telegram
                                     break;
                             }
                             break;
-                    }
-                    #endregion
+                        }
+                        #endregion
                 }
             }
             catch (Exception ex)
@@ -577,6 +604,7 @@ namespace Bot_Telegram
             return Task.CompletedTask;
         }
 
+
         #region psql
         private static async Task StudentAuth(Message message, string student_ticket)
         {
@@ -584,8 +612,8 @@ namespace Bot_Telegram
             {
                 sql.Open();
                 NpgsqlCommand command = new NpgsqlCommand(
-                    $"DELETE FROM logs WHERE user_id = { message.From.Id.GetHashCode() }"+
-                    $"INSERT INTO logs (user_id, val) VALUES ('{ message.From.Id.GetHashCode() }', { student_ticket })",
+                    $"DELETE FROM logs WHERE user_id = {message.From.Id.GetHashCode()}" +
+                    $"INSERT INTO logs (user_id, val) VALUES ('{message.From.Id.GetHashCode()}', {student_ticket})",
                     sql);
                 await command.ExecuteNonQueryAsync();
                 sql.Close();
@@ -593,13 +621,13 @@ namespace Bot_Telegram
         }
 
         private static async Task AdminAuth(Message message)
-        { 
+        {
             if (sql.State != ConnectionState.Open)
             {
                 sql.Open();
                 NpgsqlCommand command = new NpgsqlCommand(
-                    $"DELETE FROM logs WHERE user_id = { message.From.Id.GetHashCode() }" +
-                    $"INSERT INTO logs (user_id, val) VALUES ({ message.From.Id.GetHashCode() }, { 0 })",
+                    $"DELETE FROM logs WHERE user_id = {message.From.Id.GetHashCode()}" +
+                    $"INSERT INTO logs (user_id, val) VALUES ({message.From.Id.GetHashCode()}, {0})",
                     sql);
                 await command.ExecuteNonQueryAsync();
                 sql.Close();
@@ -608,11 +636,11 @@ namespace Bot_Telegram
 
         private static async Task AddFAQ(string text)
         {
-            if (sql.State != ConnectionState.Open)
+            if (sql.State == ConnectionState.Closed)
             {
                 sql.Open();
                 NpgsqlCommand command = new NpgsqlCommand(
-                    $"INSERT INTO questions (text) VALUES ({ text })",
+                    $"INSERT INTO questions (text) VALUES ({text})",
                     sql);
                 await command.ExecuteNonQueryAsync();
                 sql.Close();
@@ -625,12 +653,14 @@ namespace Bot_Telegram
             {
                 sql.Open();
                 NpgsqlCommand command = new NpgsqlCommand(
-                    $"INSERT INTO questions (text, status) VALUES ({ text }, 'Не решен')",
+                    $"INSERT INTO questions (text, status) VALUES ({text}, 'Не решен')",
                     sql);
                 await command.ExecuteNonQueryAsync();
                 sql.Close();
             }
         }
+
+
 
         private static async Task SelectAllTeachers(int teacher_id)
         {
@@ -653,7 +683,7 @@ namespace Bot_Telegram
             if (sql.State != ConnectionState.Open)
             {
                 sql.Open();
-                NpgsqlCommand select = new NpgsqlCommand($"SELECT fullname FROM teachers WHERE id = { teacher_id.GetHashCode() }", sql);
+                NpgsqlCommand select = new NpgsqlCommand($"SELECT fullname FROM teachers WHERE id = {teacher_id.GetHashCode()}", sql);
                 //int rows_changed = await select.ExecuteNonQueryAsync();//Если запрос не возвращает таблицу
                 NpgsqlDataReader reader = select.ExecuteReader();//Если запрос возвращает таблицу
 
