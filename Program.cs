@@ -228,7 +228,7 @@ namespace Bot_Telegram
                                             SetStateInsertQuest(user.Id, 1);
                                             await botClient.SendTextMessageAsync(
                                                     chat.Id,
-                                                    $"Введите свой вопрос и чуть позже сотруник обязательно на него ответит.\n\nКак только будет дан ответ на ваш вопрос, Вы получите уведомление.");
+                                                    $"Введите свой вопрос и чуть позже сотруник обязательно на него ответит.\n\nКак только будет дан ответ на ваш вопрос, Вы получите уведомление.\n\nДля отмены ввода нажмите «Назад».");
 
                                             break;
                                         }
@@ -509,7 +509,7 @@ namespace Bot_Telegram
                                             SetNewQuest1(user.Id, message.Text);
                                             await botClient.SendTextMessageAsync(
                                                 chat.Id,
-                                                "Введите ответ на вопрос",
+                                                "Введите ответ на вопрос.\n\nДля отмены ввода нажмите «Назад».",
                                                 replyToMessageId: message.MessageId);
                                             SetStateInsertQuest(user.Id, 2);
                                             break;
@@ -806,7 +806,7 @@ namespace Bot_Telegram
                                         await
                                         botClient.SendTextMessageAsync(
                                         chat.Id,
-                                        text: $"Введите ID вопроса",
+                                        text: $"Введите ID вопроса\n\nДля отмены ввода нажмите «Назад».",
                                         allowSendingWithoutReply: true);
                                     }
                                     break;
