@@ -18,6 +18,8 @@ using Npgsql;
 using Npgsql.EntityFrameworkCore.PostgreSQL;
 using IronPython.Hosting;
 using Microsoft.Scripting.Hosting;
+using static System.Net.Mime.MediaTypeNames;
+using static IronPython.Modules._ast;
 
 namespace Bot_Telegram
 {
@@ -32,9 +34,7 @@ namespace Bot_Telegram
         public static ITelegramBotClient BotClient { get => _botClient; set => _botClient = value; }
         public static ReceiverOptions ReceiverOptions { get => _receiverOptions; set => _receiverOptions = value; }
         public static NpgsqlConnection Sql { get => sql; set => sql = value; }
- 
-        public static Int16 flag = 0;
-        public static Int16 check = 0;
+
         public static async Task TelegramBotInit()
         {
             telegramBotToken = System.IO.File.ReadAllText(@"C:\\_учеба\\_tg_bot\\tg_bot\\tg_token.txt");
@@ -46,7 +46,7 @@ namespace Bot_Telegram
                 AllowedUpdates = new[] // Тут указываем типы получаемых Update`ов, о них подробнее расказано тут https://core.telegram.org/bots/api#update
                 {
                     UpdateType.Message,// Сообщения (текст, фото/видео, голосовые/видео сообщения и т.д.)
-                    UpdateType.CallbackQuery// ЁБАННЫЕ КОЛЛБЕКИ
+                    UpdateType.CallbackQuery// Коллбеки
                 },
 
                 // Параметр, отвечающий за обработку сообщений, пришедших за то время, когда ваш бот был оффлайн
@@ -74,7 +74,8 @@ namespace Bot_Telegram
 
             await sql.CloseAsync();
         }
-
+        
+        
         static async Task Main()
         {
             try
@@ -125,6 +126,9 @@ namespace Bot_Telegram
                                         // тут обрабатываем команду /start, остальные аналогичн
                                         if (message.Text == "/start" || message.Text == "start" || message.Text == "Старт" || message.Text == "старт")
                                         {
+                                            SetNewUser(user.Id, chat.Id);
+                                            SetFlag(user.Id, 1);
+
                                             var startKeyboard = new ReplyKeyboardMarkup(
                                              new List<KeyboardButton[]>()
                                               {
@@ -144,43 +148,104 @@ namespace Bot_Telegram
 
                                             await botClient.SendTextMessageAsync(
                                                 chat.Id,
-                                                "Добро пожаловать, " + $"{message.From.FirstName}" + $"{message.From.LastName}" + "!\n" +
-                                                "Я  - бот-помощник, чтобы использовать мой функционал выбирете, кем вы являетесь:",
+                                                "Добро пожаловать, " + $"{message.From.FirstName} " + $"{message.From.LastName}" + "!\n\n" +
+                                                "Я — бот-помощник, чтобы использовать мой функционал выбирете, кем вы являетесь:",
                                                 replyMarkup: startKeyboard);
 
                                             break;
-
                                         }
 
-                                        if (message.Text == "Войти")
+                                        if (message.Text == "Назад")
                                         {
-                                            if (check == 1)
+                                            if (GetStateInsertQuest(user.Id) == 1)
                                             {
-                                                flag = 1;
-
-                                                //Сюда нужно добавить проверку данных, ввелённых пользователем с данными из БД
-                                                //...
-                                                await botClient.SendTextMessageAsync(
-                                                    chat.Id,
-                                                    $"{user.FirstName}" + $"{user.LastName}" + ", вы успешно вошли как студент ЗФО!");
+                                                SetStateInsertQuest(user.Id, 0);
                                                 break;
                                             }
-
-                                            else if (check == 2)
+                                            int flag = GetFlag(user.Id);
+                                            switch (flag)
                                             {
-                                                //Сюда нужно добавить проверку данных, введённых пользователем с данными в БД
-                                                //...
-                                                flag = 1;
-                                                await botClient.SendTextMessageAsync(
-                                                    chat.Id,
-                                                    $"{user.FirstName}" + $"{user.LastName}" + ", вы успешно вошли как сотрудник УВП!");
-                                                break;
+                                                case (1):
+                                                    {
+                                                        Console.WriteLine($"Возврат пользователя назад с флага {flag}");
+                                                        SetFlag(user.Id, 0);
+                                                        var replyKeyboard = new ReplyKeyboardMarkup(
+                                                        new List<KeyboardButton[]>()
+                                                        {
+                                                        new KeyboardButton[]
+                                                            {
+                                                                new KeyboardButton("Старт"),
+                                                            }
+                                                        })
+
+                                                        { ResizeKeyboard = true, };
+
+                                                        await botClient.SendTextMessageAsync(
+                                                        chat.Id,
+                                                        "До новых встреч!\n\nДля начала работы вы всегда можете нажать «Старт».",
+                                                        replyMarkup: replyKeyboard);
+
+                                                        break;
+                                                    }
+                                                case (2):
+                                                    {
+                                                        Console.WriteLine($"Возврат пользователя назад с флага {flag}");
+                                                        SetFlag(user.Id, 1);
+
+                                                        var startKeyboard = new ReplyKeyboardMarkup(
+                                                         new List<KeyboardButton[]>()
+                                                          {
+                                                            new KeyboardButton[]
+                                                            {
+                                                                new KeyboardButton("Студент ЗФО"),
+                                                                new KeyboardButton("Сотрудник УВП"),
+                                                            },
+
+                                                            new KeyboardButton[]
+                                                            {
+                                                                new KeyboardButton("Назад"),
+                                                            },
+                                                         })
+                                                        { ResizeKeyboard = true, };
+                                                        startKeyboard.OneTimeKeyboard = true;
+
+                                                        await botClient.SendTextMessageAsync(
+                                                            chat.Id,
+                                                            "Чтобы использовать мой функционал выбирете, кем вы являетесь:",
+                                                            replyMarkup: startKeyboard);
+
+                                                        break;
+                                                    }
                                             }
+                                            break;
+                                        }
+
+                                        if (message.Text == "Добавить свой вопрос" && !GetIsAdmin(user.Id))
+                                        {
+                                            SetStateInsertQuest(user.Id, 1);
+                                            await botClient.SendTextMessageAsync(
+                                                    chat.Id,
+                                                    $"Введите свой вопрос и чуть позже сотруник обязательно на него ответит.\n\nКак только будет дан ответ на ваш вопрос, Вы получите уведомление.");
+
+                                            break;
+                                        }
+
+                                        if (GetStateInsertQuest(user.Id) == 1 && !GetIsAdmin(user.Id))
+                                        {
+                                            SetStateInsertQuest(user.Id, 0);
+
+                                            AddStudentQuestion(message.Text, user.Id);
+
+                                            await botClient.SendTextMessageAsync(
+                                                    chat.Id,
+                                                    $"Ваш вопрос успешно отправлен!");
+                                            Console.WriteLine($"Пользователь {user.Id} задал вопрос");
+                                            break;
                                         }
 
                                         if (message.Text == "До свидания")
                                         {
-                                            flag = 0;
+                                            SetFlag(user.Id, 0);
                                             var replyKeyboard = new ReplyKeyboardMarkup(
                                             new List<KeyboardButton[]>()
                                             {
@@ -199,45 +264,8 @@ namespace Bot_Telegram
                                             break;
                                         }
 
-                                        if (message.Text == "Назад")
-                                        {
-
-                                            if (flag == 1)
-                                            {
-                                                var backKeyboard = new ReplyKeyboardMarkup(
-                                                new List<KeyboardButton[]>()
-                                                {
-                                                    new KeyboardButton[]
-                                                    {
-                                                        new KeyboardButton("Студент ЗФО"),
-                                                        new KeyboardButton("Сотрудник УВП"),
-                                                    },
-
-                                                    new KeyboardButton[]
-                                                    {
-                                                        new KeyboardButton("До свидания"),
-                                                    },
-                                                })
-                                                { ResizeKeyboard = true, };
-                                                await botClient.SendTextMessageAsync(
-                                                    chat.Id,
-                                                    "",
-                                                    replyMarkup: backKeyboard
-                                                );
-
-                                                break;
-                                            }
-
-                                            flag -= 1;
-
-                                        }
-
                                         if (message.Text == "Студент ЗФО")
                                         {
-                                            Console.WriteLine($"{message.From.FirstName}" + $"{message.From.LastName}" + ", вы успешно вошли как студент ЗФО!");
-                                            check = 1;
-                                            flag = 1;
-
                                             var studentKeyboard = new InlineKeyboardMarkup(
                                                 new List<InlineKeyboardButton[]>()
                                                 {
@@ -257,13 +285,14 @@ namespace Bot_Telegram
 
                                         if (message.Text == "Расписание экзаменов")
                                         {
-                                            flag = 3;
+                                            SetFlag(user.Id, 3);
+
                                             var schedualKeyboard = new InlineKeyboardMarkup(
                                                new List<InlineKeyboardButton[]>()
                                                {
                                                    new InlineKeyboardButton[]
                                                    {
-                                                       InlineKeyboardButton.WithCallbackData("Расписание экзаменов", " ekz")
+                                                       InlineKeyboardButton.WithUrl("Расписание экзаменов", "https://cs.istu.ru/index.php?project=kaf&page=_process_schedule_extramural_")
                                                    },
                                                });
 
@@ -277,82 +306,75 @@ namespace Bot_Telegram
 
                                         if (message.Text == "Контакты преподавателей")
                                         {
-                                            flag = 3;
-                                            ScriptEngine engine = Python.CreateEngine();
-                                            engine.ExecuteFile("parser.py");
+                                            Console.WriteLine($"Пользователь ({user.Id}) запросил список преподавателей");
+
+                                            List<string> faq = SelectAllTeachers();
+                                            string messege_text = "Вот список преподавателей:\n\n";
+                                            for (int i = 0; i < faq.Count - 1; i++)
+                                                messege_text += (i + 1) + ") " + faq[i] + "\n";
+                                            messege_text += faq.Count + ") " + faq[faq.Count - 1];
+
                                             var schedualKeyboard = new InlineKeyboardMarkup(
                                                new List<InlineKeyboardButton[]>()
                                                {
                                                    new InlineKeyboardButton[]
                                                    {
-                                                       InlineKeyboardButton.WithCallbackData("1", " 1"),
-                                                       InlineKeyboardButton.WithCallbackData("2", " 2"),
-                                                       InlineKeyboardButton.WithCallbackData("3", " 3")
+                                                       InlineKeyboardButton.WithCallbackData("1", " t1"),
+                                                       InlineKeyboardButton.WithCallbackData("2", " t2"),
+                                                       InlineKeyboardButton.WithCallbackData("3", " t3"),
+                                                       InlineKeyboardButton.WithCallbackData("4", " t4")
                                                    },
 
                                                    new InlineKeyboardButton[]
                                                    {
-                                                       InlineKeyboardButton.WithCallbackData("4", " 4"),
-                                                       InlineKeyboardButton.WithCallbackData("5", " 5"),
-                                                       InlineKeyboardButton.WithCallbackData("6", " 6")
+                                                       InlineKeyboardButton.WithCallbackData("5", " t5"),
+                                                       InlineKeyboardButton.WithCallbackData("6", " t6"),
+                                                       InlineKeyboardButton.WithCallbackData("7", " t7"),
+                                                       InlineKeyboardButton.WithCallbackData("8", " t8")
                                                    },
 
                                                    new InlineKeyboardButton[]
                                                    {
-                                                       InlineKeyboardButton.WithCallbackData("7", " 7"),
-                                                       InlineKeyboardButton.WithCallbackData("8", " 8"),
-                                                       InlineKeyboardButton.WithCallbackData("9", " 9")
+                                                       InlineKeyboardButton.WithCallbackData("9", " t9"),
+                                                       InlineKeyboardButton.WithCallbackData("10", " t10"),
+                                                       InlineKeyboardButton.WithCallbackData("11", " t11"),
+                                                       InlineKeyboardButton.WithCallbackData("12", " t12")
                                                    },
 
                                                    new InlineKeyboardButton[]
                                                    {
-                                                       InlineKeyboardButton.WithCallbackData("10", " 10"),
-                                                       InlineKeyboardButton.WithCallbackData("11", " 11"),
-                                                       InlineKeyboardButton.WithCallbackData("12", " 12")
+                                                       InlineKeyboardButton.WithCallbackData("13", " t13"),
+                                                       InlineKeyboardButton.WithCallbackData("14", " t14"),
+                                                       InlineKeyboardButton.WithCallbackData("15", " t15"),
+                                                       InlineKeyboardButton.WithCallbackData("16", " t16")
                                                    },
 
                                                    new InlineKeyboardButton[]
                                                    {
-                                                       InlineKeyboardButton.WithCallbackData("13", " 13"),
-                                                       InlineKeyboardButton.WithCallbackData("14", " 14"),
-                                                       InlineKeyboardButton.WithCallbackData("15", " 15")
+                                                       InlineKeyboardButton.WithCallbackData("17", "t17"),
+                                                       InlineKeyboardButton.WithCallbackData("18", "t18"),
+                                                       InlineKeyboardButton.WithCallbackData("19", "t19"),
+                                                       InlineKeyboardButton.WithCallbackData("20", "t20")
                                                    },
 
-                                                     new InlineKeyboardButton[]
+                                                   new InlineKeyboardButton[]
                                                    {
-                                                       InlineKeyboardButton.WithCallbackData("16", " 16"),
-                                                       InlineKeyboardButton.WithCallbackData("17", " 17"),
-                                                       InlineKeyboardButton.WithCallbackData("18", " 18")
+                                                       InlineKeyboardButton.WithCallbackData("21", " t21"),
+                                                       InlineKeyboardButton.WithCallbackData("22", " t22"),
+                                                       InlineKeyboardButton.WithCallbackData("23", " t23"),
+                                                       InlineKeyboardButton.WithCallbackData("24", " t24")
                                                    },
 
-                                                       new InlineKeyboardButton[]
+                                                   new InlineKeyboardButton[]
                                                    {
-                                                       InlineKeyboardButton.WithCallbackData("19", " 19")
+                                                       InlineKeyboardButton.WithCallbackData("25", " t25"),
+                                                       InlineKeyboardButton.WithCallbackData("26", " t26")
                                                    },
                                                });
-
+                                            
                                             await botClient.SendTextMessageAsync(
-                                                chat.Id,
-                                                "Вот список преподавателей:" +
-                                                "1)Леонов Михаил Витальевич" +
-                                                "2)Аль аккад Мхд айман" +
-                                                "3)Архипов Игорь Олегович" +
-                                                "4)Брычкина Мария Сергеевна" +
-                                                "5)Власов Вадим Геннадьевич" +
-                                                "6)Еланцев Михаил Олегович" +
-                                                "7)Зылева Елена Анатольевна" +
-                                                "8)Коробейников Александр Васильевич" +
-                                                "9)Левицкая Людмила Николаевна" +
-                                                "10)Лугачев Павел Петрович" +
-                                                "11)Макарова Ольга Леонидовна" +
-                                                "12)Постникова Елена Николаевна" +
-                                                "13)Русских Анатолий Геннадьевич" +
-                                                "14)Соболева Валентина Павловна" +
-                                                "15)Старыгин Артем Викторович" +
-                                                "16)Тарасов Владимир Георгиевич" +
-                                                "17)Чернышев Константин Сергеевич" +
-                                                "18)Шаталова Ольга Михайловна" +
-                                                "19)Шишлина Наталья Васильевна",
+                                                chat.Id,    
+                                                messege_text,
                                                 replyMarkup: schedualKeyboard);
 
                                             break;
@@ -396,47 +418,77 @@ namespace Bot_Telegram
                                             return;
                                         }
 
-                                        if (message.Text == "Вот список вопросов:")
+                                        if (message.Text == "Часто задаваемые вопросы")
                                         {
-                                            flag = 3;
+                                            Console.WriteLine($"Пользователь ({user.Id}) запросил список ЧЗВ");
+
+                                            List<string> faq = SelectFAQ();
+                                            string messege_text = "Вот список вопросов:\n\n";
+                                            for (int i = 0; i < faq.Count - 1; i++)
+                                                messege_text += (i+1) + ") " + faq[i] + ";\n";
+                                            messege_text += faq.Count + ") " + faq[faq.Count - 1] + ".";
+
+                                            var questionsKeyboard = new InlineKeyboardMarkup(
+                                               new List<InlineKeyboardButton[]>()
+                                               {
+                                                   new InlineKeyboardButton[]
+                                                   {
+                                                       InlineKeyboardButton.WithCallbackData("1", " q1"),
+                                                       InlineKeyboardButton.WithCallbackData("2", " q2"),
+                                                       InlineKeyboardButton.WithCallbackData("3", " q3")
+                                                   },
+
+                                                   new InlineKeyboardButton[]
+                                                   {
+                                                       InlineKeyboardButton.WithCallbackData("4", " q4"),
+                                                       InlineKeyboardButton.WithCallbackData("5", " q5"),
+                                                       InlineKeyboardButton.WithCallbackData("6", " q6")
+                                                   },
+
+                                                   new InlineKeyboardButton[]
+                                                   {
+                                                       InlineKeyboardButton.WithCallbackData("7", " q7"),
+                                                       InlineKeyboardButton.WithCallbackData("8", " q8"),
+                                                       InlineKeyboardButton.WithCallbackData("9", " q9")
+                                                   },
+
+                                               });
+
                                             await botClient.SendTextMessageAsync(
                                                 chat.Id,
-                                                "Вот список вопросов:" +
-                                                "1)Можно ли дистанционно закрывать сессии ? " +
-                                                "2)Где получить справку об обучении в вузе ? " +
-                                                "3)Что нужно сделать, чтобы обновили информацию в личном кабинете?" +
-                                                "4)Где можно посмотреть даты сессий и расписание занятий?" +
-                                                "5)Каким образом можно оформить пропуск / допуск для прохода в корпусы ИжГТУ ? " +
-                                                "6)Где и как получить студенческий билет?" +
-                                                "7)Какие сроки по сдаче нормоконтроля, реферата, учётной карточки, проверки на заимствование?" +
-                                                "8)Как выбрать научного руководителя для написания ВКР ? " +
-                                                "9)Как и где можно заказать справку-вызов ? ",
-                                                replyToMessageId: message.MessageId);
+                                                messege_text,
+                                                replyToMessageId: message.MessageId,
+                                                replyMarkup:questionsKeyboard);
 
                                             break;
                                         }
 
-                                        if (message.Text == "Сотрудник УВП")
+                                        if (message.Text == "Сотрудник УВП" && !GetIsAdmin(user.Id))
                                         {
-                                            Console.WriteLine($"{user.FirstName}" + $"{user.LastName}" + ", вы успешно вошли как сотрудник УВП!");
-                                            check = 2;
-                                            flag = 3;
+                                            await botClient.SendTextMessageAsync(
+                                                chat.Id,
+                                                "Введите кодовое слово:"
+                                            );
+
+                                            break;
+                                        }
+
+                                        if (message.Text == "key-word" || (message.Text == "Сотрудник УВП" && GetIsAdmin(user.Id)))
+                                        {
+                                            SetIsAdmin(user.Id, true);
+                                            SetFlag(user.Id, 2);
+                                            Console.WriteLine($"{user.FirstName}" + $"{user.LastName}" + ", успешно вошёл как сотрудник УВП");
                                             var replyKeyboard = new ReplyKeyboardMarkup(
                                                 new List<KeyboardButton[]>()
                                                 {
                                                     new KeyboardButton[]
                                                     {
-                                                        new KeyboardButton("Редaктировать контакты преподавателей"),
-                                                        new KeyboardButton("Редактировать часто задаваемые вопросы"),
-                                                    },
-                                                    new KeyboardButton[]
-                                                    {
-                                                        new KeyboardButton("Добавить расписание экзаменов"),
+                                                        new KeyboardButton("Вопросы от студентов"),
                                                         new KeyboardButton("Страница кафедры"),
                                                     },
                                                     new KeyboardButton[]
                                                     {
-                                                        new KeyboardButton("До свидания")
+                                                        new KeyboardButton("Назад")
                                                     }
                                                 }
                                             )
@@ -444,29 +496,111 @@ namespace Bot_Telegram
 
                                             await botClient.SendTextMessageAsync(
                                                 chat.Id,
-                                                "Вы вошли как сотрудник УВП.",
+                                                "Вы успешно вошли как сотрудник УВП!",
                                                 replyMarkup: replyKeyboard
-                                        );
+                                            );
+                                        }
+
+                                        if (GetStateInsertQuest(user.Id) == 1 && GetIsAdmin(user.Id))
+                                        {
+                                            SetNewQuest1(user.Id, message.Text);
+                                            await botClient.SendTextMessageAsync(
+                                                chat.Id,
+                                                "Введите ответ на вопрос",
+                                                replyToMessageId: message.MessageId);
+                                            SetStateInsertQuest(user.Id, 2);
+                                            break;
+                                        }
+
+                                        if (GetStateInsertQuest(user.Id) == 2 && GetIsAdmin(user.Id))
+                                        {
+                                            SetNewQuest2(user.Id, message.Text);
+                                            SetStateInsertQuest(user.Id, 0);
+
+                                            int q_id = int.Parse(GetNewQuest1(user.Id));
+                                            string answer = GetNewQuest2(user.Id);
+
+                                            sql.Open();
+                                            NpgsqlCommand command = new NpgsqlCommand(
+                                                    $"UPDATE questions SET answer = '{answer}' WHERE q_id = {q_id}",
+                                                    sql);
+                                            await command.ExecuteNonQueryAsync();
+                                            command = new NpgsqlCommand(
+                                                    $"UPDATE questions SET status = 'Решен' WHERE q_id = {q_id}",
+                                                    sql);
+                                            await command.ExecuteNonQueryAsync();
+                                            sql.Close();
+
+                                            await botClient.SendTextMessageAsync(
+                                                chat.Id,
+                                                "Ответ успешно добавлен",
+                                                replyToMessageId: message.MessageId);
+
+                                            long author = 0;
+                                            if (sql.State == ConnectionState.Closed)
+                                            {
+                                                sql.Open();
+                                                NpgsqlCommand select = new NpgsqlCommand($"SELECT author FROM questions WHERE q_id = {q_id}", sql);
+                                                NpgsqlDataReader reader = select.ExecuteReader();//Если запрос возвращает таблицу
+
+                                                reader.Read();
+                                                author = Convert.ToInt64(reader[0]);
+
+                                                reader.Close();
+                                                sql.Close();
+                                            }
+
+                                            string q_text = "";
+                                            if (sql.State == ConnectionState.Closed)
+                                            {
+                                                sql.Open();
+                                                NpgsqlCommand select = new NpgsqlCommand($"SELECT text FROM questions WHERE q_id = {q_id}", sql);
+                                                NpgsqlDataReader reader = select.ExecuteReader();//Если запрос возвращает таблицу
+
+                                                reader.Read();
+                                                q_text = reader.GetString(0);
+
+                                                reader.Close();
+                                                sql.Close();
+                                            }
+
+                                            await botClient.SendTextMessageAsync(
+                                                author,
+                                                $"На ваш вопрос ответили!\n\nВопрос: {q_text}\n\nОтвет: {answer}"
+                                                );
 
                                             break;
                                         }
 
-                                        if (message.Text == "Вот список вопросов:")
+                                        if (message.Text == "Вопросы от студентов" && GetIsAdmin(user.Id))
                                         {
-                                            flag = 4;
+                                            sql.Open();
+                                            NpgsqlCommand command = new NpgsqlCommand(
+                                                    $"SELECT q_id, text FROM questions WHERE status = 'Не решен'",
+                                                    sql);
+                                            NpgsqlDataReader dr = await command.ExecuteReaderAsync();
+
+                                            string studQuest = "";
+                                            while (dr.Read())
+                                                studQuest += $"ID = {dr["q_id"]}: {dr["text"]}\n";
+                                            studQuest = studQuest.TrimEnd('\n');
+
+                                            var adminKeyboard = new InlineKeyboardMarkup(
+                                                new List<InlineKeyboardButton[]>()
+                                                {
+                                                    new InlineKeyboardButton[]
+                                                    {
+                                                        InlineKeyboardButton.WithCallbackData("Ответить на вопрос", "Answer")
+                                                    },
+                                                });
+
                                             await botClient.SendTextMessageAsync(
                                                 chat.Id,
-                                                "Вот список вопросов:" +
-                                                "1)Можно ли дистанционно закрывать сессии ? " +
-                                                "2)Где получить справку об обучении в вузе ? " +
-                                                "3)Что нужно сделать, чтобы обновили информацию в личном кабинете?" +
-                                                "4)Где можно посмотреть даты сессий и расписание занятий?" +
-                                                "5)Каким образом можно оформить пропуск / допуск для прохода в корпусы ИжГТУ ? " +
-                                                "6)Где и как получить студенческий билет?" +
-                                                "7)Какие сроки по сдаче нормоконтроля, реферата, учётной карточки, проверки на заимствование?" +
-                                                "8)Как выбрать научного руководителя для написания ВКР ? " +
-                                                "9)Как и где можно заказать справку-вызов ? ",
-                                                replyToMessageId: message.MessageId);
+                                                text: studQuest,
+                                                replyMarkup: adminKeyboard,
+                                                replyToMessageId: message.MessageId
+                                                );
+                                            sql.Close();
 
                                             break;
                                         }
@@ -474,7 +608,7 @@ namespace Bot_Telegram
                                         break;
                                     }
 
-                                default:
+                            default:
                                     {
                                         await botClient.SendTextMessageAsync(
                                             chat.Id,
@@ -484,13 +618,14 @@ namespace Bot_Telegram
                                     }
                             }
                         }
-                        break;
+                     break;
                     #endregion
+
+                    
 
                     #region callback_updates
                     case UpdateType.CallbackQuery:
                         {
-
                             // Переменная, которая будет содержать в себе всю информацию о кнопке, которую нажали
                             CallbackQuery callbackQuery = update.CallbackQuery;
 
@@ -505,6 +640,20 @@ namespace Bot_Telegram
                             // кнопка привязана к сообщению, то мы берем информацию от сообщения.
                             var chat = callbackQuery.Message.Chat;
 
+                            int q_id = 0;
+                            if (" q1 q2 q3 q4 q5 q6 q7 q8 q9".Contains(callbackQuery.Data))
+                            {
+                                q_id = Convert.ToInt16(callbackQuery.Data.TrimStart(' ', 'q'));
+                                callbackQuery.Data = " q1 q2 q3 q4 q5 q6 q7 q8 q9";
+                            }
+                            
+                            int t_id = 0;
+                            if (" t1 t2 t3 t4 t5 t6 t7 t8 t9 t10 t11 t12 t13 t14 t15 t16 t17 t19 t20 t21 t22 t23 t24 t25 t26".Contains(callbackQuery.Data))
+                            {
+                                t_id = Convert.ToInt16(callbackQuery.Data.TrimStart(' ', 't'));
+                                callbackQuery.Data = " t1 t2 t3 t4 t5 t6 t7 t8 t9 t10 t11 t12 t13 t14 t15 t16 t17 t19 t20 t21 t22 t23 t24 t25 t26";
+                            }
+
                             // Добавляем блок switch для проверки кнопок
                             switch (callbackQuery.Data)
                             {
@@ -513,6 +662,7 @@ namespace Bot_Telegram
 
 
                                 case ("Bachelor"):
+                                    SetFlag(user.Id, 2);
 
                                     await botClient.AnswerCallbackQueryAsync(callbackQuery.Id);
                                     var bachelorKeyboard = new ReplyKeyboardMarkup
@@ -527,7 +677,14 @@ namespace Bot_Telegram
                                                 new KeyboardButton[]
                                                 {
                                                     new KeyboardButton("Часто задаваемые вопросы"),
+                                                    new KeyboardButton("Добавить свой вопрос"),
+                                                },
+                                                new KeyboardButton[]
+                                                {
                                                     new KeyboardButton("Страница кафедры"),
+                                                },
+                                                new KeyboardButton[]
+                                                {
                                                     new KeyboardButton("Назад"),
                                                 },
                                         }
@@ -538,13 +695,15 @@ namespace Bot_Telegram
                                     await
                                         botClient.SendTextMessageAsync(
                                         chat.Id,
-                                        $"Вы выбрали {callbackQuery.Data}",
+                                        $"Вы выбрали Бакалавриат/Специалитет",
                                         replyMarkup: bachelorKeyboard,
                                         allowSendingWithoutReply: true);
 
                                     break;
 
                                 case ("Magistr"):
+                                    SetFlag(user.Id, 2);
+
                                     await botClient.AnswerCallbackQueryAsync(callbackQuery.Id);
                                     var magKeyboard = new ReplyKeyboardMarkup
                                     (
@@ -558,7 +717,14 @@ namespace Bot_Telegram
                                                 new KeyboardButton[]
                                                 {
                                                     new KeyboardButton("Часто задаваемые вопросы"),
+                                                    new KeyboardButton("Добавить свой вопрос"),
+                                                },
+                                                new KeyboardButton[]
+                                                {
                                                     new KeyboardButton("Страница кафедры"),
+                                                },
+                                                new KeyboardButton[]
+                                                {
                                                     new KeyboardButton("Назад"),
                                                 },
                                         })
@@ -568,20 +734,78 @@ namespace Bot_Telegram
                                     await
                                         botClient.SendTextMessageAsync(
                                         chat.Id,
-                                        text: $"Вы выбрали {callbackQuery.Data}",
+                                        text: $"Вы выбрали Магистратуру",
                                         replyMarkup: magKeyboard,
                                         allowSendingWithoutReply: true);
                                     break;
 
-                                case ("1"):
+                                case (" q1 q2 q3 q4 q5 q6 q7 q8 q9"):
                                     {
+                                        string Text1 = SelectQuestion(q_id);
+                                        await botClient.SendTextMessageAsync(
+                                            chat.Id,
+                                            text: "Ответ: " + $"{Text1.TrimEnd('\n')}");
+                                    }
+                                    break;
 
+                                case (" t1 t2 t3 t4 t5 t6 t7 t8 t9 t10 t11 t12 t13 t14 t15 t16 t17 t19 t20 t21 t22 t23 t24 t25 t26"):
+                                    {
+                                        sql.Open();
+                                        string commandText = $"SELECT * FROM teachers WHERE id = {t_id}";
+                                        NpgsqlCommand command = new NpgsqlCommand(commandText, sql);
+                                        NpgsqlDataReader dr = command.ExecuteReader();
+
+                                        string Text1 = "";
+                                        string Text2 = "";
+                                        string Text3 = "";
+                                        while (dr.Read())
+                                        {
+                                            Text1 = dr["fullname"].ToString();
+                                            Text2 = dr["contacts"].ToString();
+                                            Text3 = dr["consultations"].ToString();
+                                        }
+
+                                        if (Text2.Length == 0)
+                                            Text2 = "не имеет доступной контактной информации.";
+
+                                        sql.Close();
+
+                                        string messege = $"{Text1}";
+                                        if (Text2.Length == 0)
+                                        {
+                                            messege += "\n\nУ данного преподавателя нет контактной информации.";
+                                        } else
+                                        {
+                                            messege += $"\n\nКонтактная информация:\n{Text2.TrimEnd('\n')}.";
+                                        }
+                                        if (Text3.Length == 0)
+                                        {
+                                            messege += "\n\nУ данного преподавателя нет консультаций.";
+                                        } else
+                                        {
+                                            messege += $"\n\nРасписание консультаций:\n{Text3.TrimEnd('\n')}.";
+                                        }
+                                        await botClient.SendTextMessageAsync(
+                                            chat.Id,
+                                            text: messege);
+                                    }
+                                    break;
+
+                                case ("Answer"):
+                                    {
+                                        SetStateInsertQuest(user.Id, 1);
+
+                                        await
+                                        botClient.SendTextMessageAsync(
+                                        chat.Id,
+                                        text: $"Введите ID вопроса",
+                                        allowSendingWithoutReply: true);
                                     }
                                     break;
                             }
-                            break;
-                        }
                         #endregion
+                        break;
+                        }
                 }
             }
             catch (Exception ex)
@@ -603,81 +827,92 @@ namespace Bot_Telegram
             Console.WriteLine(ErrorMessage);
             return Task.CompletedTask;
         }
-
-
+        
         #region psql
-        private static async Task StudentAuth(Message message, string student_ticket)
+
+        private static async Task AddStudentQuestion(string text, long chat_id)
         {
             if (sql.State != ConnectionState.Open)
             {
                 sql.Open();
                 NpgsqlCommand command = new NpgsqlCommand(
-                    $"DELETE FROM logs WHERE user_id = {message.From.Id.GetHashCode()}" +
-                    $"INSERT INTO logs (user_id, val) VALUES ('{message.From.Id.GetHashCode()}', {student_ticket})",
+                    $"INSERT INTO questions (text, author) VALUES ('{text}', '{chat_id}')",
                     sql);
                 await command.ExecuteNonQueryAsync();
                 sql.Close();
             }
         }
 
-        private static async Task AdminAuth(Message message)
+        private static List<string> SelectFAQ()
         {
+            List<string> resultAsStringList = new List<string>();
+        
             if (sql.State != ConnectionState.Open)
             {
                 sql.Open();
-                NpgsqlCommand command = new NpgsqlCommand(
-                    $"DELETE FROM logs WHERE user_id = {message.From.Id.GetHashCode()}" +
-                    $"INSERT INTO logs (user_id, val) VALUES ({message.From.Id.GetHashCode()}, {0})",
-                    sql);
-                await command.ExecuteNonQueryAsync();
+                NpgsqlCommand select = new NpgsqlCommand($"SELECT text FROM questions WHERE status = 'FAQ'", sql);
+                NpgsqlDataReader reader = select.ExecuteReader();
+        
+                if (reader.HasRows)//Если пришли результаты
+                {
+                    int i = 0;
+                    while (reader.Read())//Пока есть записи
+                    {
+                            resultAsStringList.Insert(i++, reader.GetString(0));
+                    }
+                }
                 sql.Close();
             }
+        
+            return resultAsStringList;
         }
-
-        private static async Task AddFAQ(string text)
+        
+        private static string SelectQuestion(int id)
         {
-            if (sql.State == ConnectionState.Closed)
-            {
-                sql.Open();
-                NpgsqlCommand command = new NpgsqlCommand(
-                    $"INSERT INTO questions (text) VALUES ({text})",
-                    sql);
-                await command.ExecuteNonQueryAsync();
-                sql.Close();
-            }
-        }
-
-        private static async Task AddStudentQuestion(string text)
-        {
+            string resultAsString = "";
+        
             if (sql.State != ConnectionState.Open)
             {
                 sql.Open();
-                NpgsqlCommand command = new NpgsqlCommand(
-                    $"INSERT INTO questions (text, status) VALUES ({text}, 'Не решен')",
-                    sql);
-                await command.ExecuteNonQueryAsync();
-                sql.Close();
-            }
-        }
-
-
-
-        private static async Task SelectAllTeachers(int teacher_id)
-        {
-            if (sql.State != ConnectionState.Open)
-            {
-                //sql.Open();
-                //NpgsqlCommand select = new NpgsqlCommand($"SELECT fullname FROM teachers WHERE id = {teacher_id.GetHashCode()}", sql);
+                NpgsqlCommand select = new NpgsqlCommand($"SELECT answer FROM questions WHERE id = { id }", sql);
                 //int rows_changed = await select.ExecuteNonQueryAsync();//Если запрос не возвращает таблицу
-                //NpgsqlDataReader reader = select.ExecuteReader();//Если запрос возвращает таблицу
-
-                //await reader.ReadAsync();
-                //flag = Convert.ToInt16(reader[0]);
-
-                //reader.Close();
-                //sql.Close();
+                NpgsqlDataReader reader = select.ExecuteReader();//Если запрос возвращает таблицу
+        
+                reader.Read();
+                resultAsString = reader.GetInt32(0).ToString();
+        
+                reader.Close();
+                sql.Close();
             }
+        
+            return resultAsString;
         }
+
+        private static List<string> SelectAllTeachers()
+        {
+            //NpgsqlCommand select = new NpgsqlCommand($"SELECT fullname FROM teachers WHERE id = {teacher_id.GetHashCode()}", sql);
+            List<string> resultAsStringList = new List<string>();
+
+            if (sql.State != ConnectionState.Open)
+            {
+                sql.Open();
+                NpgsqlCommand select = new NpgsqlCommand($"SELECT fullname FROM teachers", sql);
+                NpgsqlDataReader reader = select.ExecuteReader();
+
+                if (reader.HasRows)//Если пришли результаты
+                {
+                    int i = 0;
+                    while (reader.Read())//Пока есть записи
+                    {
+                        resultAsStringList.Insert(i++, reader.GetString(0));
+                    }
+                }
+                sql.Close();
+            }
+
+            return resultAsStringList;
+        }
+
         private static async Task SelectFromTeachersById(int teacher_id)
         {
             if (sql.State != ConnectionState.Open)
@@ -688,40 +923,331 @@ namespace Bot_Telegram
                 NpgsqlDataReader reader = select.ExecuteReader();//Если запрос возвращает таблицу
 
                 await reader.ReadAsync();
-                var teacher_fullname = Convert.ToInt16(reader[0]);
+                var teacher_fullname = reader.GetString(0);
 
                 reader.Close();
                 sql.Close();
             }
         }
 
-        private static async Task InsertIntoLogs(long user_id, int val)
+
+
+        /// <summary>
+        /// Set or alter new user
+        /// </summary>
+        /// <param name="user_id"></param>
+        public static void SetNewUser(long user_id, double chat_id)
         {
-            if (sql.State != ConnectionState.Open)
+            if (sql.State == ConnectionState.Closed)
             {
                 sql.Open();
-                NpgsqlCommand command = new NpgsqlCommand($"INSERT INTO logs (user_id, val) VALUES ({ user_id.GetHashCode() }, { val })", sql);
-                await command.ExecuteNonQueryAsync();
+                NpgsqlCommand command = new NpgsqlCommand(
+                    $"DELETE FROM users WHERE id = { user_id.GetHashCode() }",
+                    sql);
+                command.ExecuteNonQuery();
+
+                command = new NpgsqlCommand(
+                    $"INSERT INTO users (id, chat_id) VALUES ({ user_id.GetHashCode() }, {chat_id})",
+                    sql);
+                command.ExecuteNonQuery();
                 sql.Close();
             }
         }
 
-        private static async Task SelectFromLogs(long user_id)
+
+
+        /// <summary>
+        /// Alter admin privelegues
+        /// </summary>
+        /// <param name="user_id"></param>
+        /// <param name="is_admin"></param>
+        public static void SetIsAdmin(long user_id, bool is_admin)
         {
-            if (sql.State != ConnectionState.Open)
+            if (sql.State == ConnectionState.Closed)
             {
                 sql.Open();
-                NpgsqlCommand select = new NpgsqlCommand($"SELECT val FROM logs WHERE user_id = { user_id.GetHashCode() }", sql);
-                //int rows_changed = await select.ExecuteNonQueryAsync();//Если запрос не возвращает таблицу
+                NpgsqlCommand command = new NpgsqlCommand(
+                    $"UPDATE users SET is_admin = { is_admin } WHERE id = { user_id.GetHashCode() }",
+                    sql);
+                command.ExecuteNonQuery();
+                sql.Close();
+            }
+        }
+        /// <summary>
+        /// Check if user us admin
+        /// </summary>
+        /// <param name="user_id"></param>
+        /// <returns></returns>
+        public static bool GetIsAdmin(long user_id)
+        {
+            bool is_admin = false;
+            if (sql.State == ConnectionState.Closed)
+            {
+                sql.Open();
+                NpgsqlCommand select = new NpgsqlCommand($"SELECT is_admin FROM users WHERE id = { user_id.GetHashCode() }", sql);
                 NpgsqlDataReader reader = select.ExecuteReader();//Если запрос возвращает таблицу
 
-                await reader.ReadAsync();
+                reader.Read();
+                is_admin = Convert.ToBoolean(reader[0]);
+
+                reader.Close();
+                sql.Close();
+            }
+            return is_admin;
+        }
+
+
+
+        /// <summary>
+        /// Sets check param
+        /// </summary>
+        /// <param name="user_id"></param>
+        /// <param name="check"></param>
+        public static void SetCheck(long user_id, int check)
+        {
+            if (sql.State == ConnectionState.Closed)
+            {
+                sql.Open();
+                NpgsqlCommand command = new NpgsqlCommand(
+                    $"UPDATE users SET do_check = {check} WHERE id = {user_id.GetHashCode()}",
+                    sql);
+                command.ExecuteNonQuery();
+                sql.Close();
+            }
+        }
+        /// <summary>
+        /// Gets check param
+        /// </summary>
+        /// <param name="user_id"></param>
+        /// <returns></returns>
+        public static int GetCheck(long user_id)
+        {
+            int check = 0;
+            if (sql.State == ConnectionState.Closed)
+            {
+                sql.Open();
+                NpgsqlCommand select = new NpgsqlCommand($"SELECT do_check FROM users WHERE id = {user_id.GetHashCode()}", sql);
+                NpgsqlDataReader reader = select.ExecuteReader();//Если запрос возвращает таблицу
+
+                reader.Read();
+                check = Convert.ToInt16(reader[0]);
+
+                reader.Close();
+                sql.Close();
+            }
+            return check;
+        }
+
+
+
+        /// <summary>
+        /// Sets flag param
+        /// </summary>
+        /// <param name="user_id"></param>
+        /// <param name="check"></param>
+        public static void SetFlag(long user_id, int flag)
+        {
+            if (sql.State == ConnectionState.Closed)
+            {
+                sql.Open();
+                NpgsqlCommand command = new NpgsqlCommand(
+                    $"UPDATE users SET do_flag = {flag} WHERE id = {user_id.GetHashCode()}",
+                    sql);
+                command.ExecuteNonQuery();
+                sql.Close();
+            }
+        }
+        /// <summary>
+        /// Gets flag param
+        /// </summary>
+        /// <param name="user_id"></param>
+        /// <returns></returns>
+        public static int GetFlag(long user_id)
+        {
+            int flag = 0;
+            if (sql.State == ConnectionState.Closed)
+            {
+                sql.Open();
+                NpgsqlCommand select = new NpgsqlCommand($"SELECT do_flag FROM users WHERE id = {user_id.GetHashCode()}", sql);
+                NpgsqlDataReader reader = select.ExecuteReader();//Если запрос возвращает таблицу
+
+                reader.Read();
                 flag = Convert.ToInt16(reader[0]);
 
                 reader.Close();
                 sql.Close();
             }
+            return flag;
         }
+
+
+
+        /// <summary>
+        /// Sets stateDeleteQuest param
+        /// </summary>
+        /// <param name="user_id"></param>
+        /// <param name="check"></param>
+        public static void SetStateDeleteQuest(long user_id, bool stateDeleteQuest)
+        {
+            if (sql.State == ConnectionState.Closed)
+            {
+                sql.Open();
+                NpgsqlCommand command = new NpgsqlCommand(
+                    $"UPDATE users SET state_delete_quest = {stateDeleteQuest} WHERE id = {user_id.GetHashCode()}",
+                    sql);
+                command.ExecuteNonQuery();
+                sql.Close();
+            }
+        }
+        /// <summary>
+        /// Gets stateDeleteQuest param
+        /// </summary>
+        /// <param name="user_id"></param>
+        /// <returns></returns>
+        public static bool GetStateDeleteQuest(long user_id)
+        {
+            bool stateDeleteQuest = false;
+            if (sql.State == ConnectionState.Closed)
+            {
+                sql.Open();
+                NpgsqlCommand select = new NpgsqlCommand($"SELECT state_delete_quest FROM users WHERE id = {user_id.GetHashCode()}", sql);
+                NpgsqlDataReader reader = select.ExecuteReader();//Если запрос возвращает таблицу
+
+                reader.Read();
+                stateDeleteQuest = Convert.ToBoolean(reader[0]);
+
+                reader.Close();
+                sql.Close();
+            }
+            return stateDeleteQuest;
+        }
+
+
+
+        /// <summary>
+        /// Sets stateInsertQuest param
+        /// </summary>
+        /// <param name="user_id"></param>
+        /// <param name="check"></param>
+        public static void SetStateInsertQuest(long user_id, int stateInsertQuest)
+        {
+            if (sql.State == ConnectionState.Closed)
+            {
+                sql.Open();
+                NpgsqlCommand command = new NpgsqlCommand(
+                    $"UPDATE users SET state_insert_quest = {stateInsertQuest} WHERE id = {user_id.GetHashCode()}",
+                    sql);
+                command.ExecuteNonQuery();
+                sql.Close();
+            }
+        }
+        /// <summary>
+        /// Gets stateInsertQuest param
+        /// </summary>
+        /// <param name="user_id"></param>
+        /// <returns></returns>
+        public static int GetStateInsertQuest(long user_id)
+        {
+            int stateInsertQues = 0;
+            if (sql.State == ConnectionState.Closed)
+            {
+                sql.Open();
+                NpgsqlCommand select = new NpgsqlCommand($"SELECT state_insert_quest FROM users WHERE id = {user_id.GetHashCode()}", sql);
+                NpgsqlDataReader reader = select.ExecuteReader();//Если запрос возвращает таблицу
+
+                reader.Read();
+                stateInsertQues = Convert.ToInt16(reader[0]);
+
+                reader.Close();
+                sql.Close();
+            }
+            return stateInsertQues;
+        }
+
+
+
+        /// <summary>
+        /// Sets newQuest1 param
+        /// </summary>
+        /// <param name="user_id"></param>
+        /// <param name="check"></param>
+        public static void SetNewQuest1(long user_id, string newQuest1)
+        {
+            if (sql.State == ConnectionState.Closed)
+            {
+                sql.Open();
+                NpgsqlCommand command = new NpgsqlCommand(
+                    $"UPDATE users SET new_quest_f = '{newQuest1}' WHERE id = {user_id.GetHashCode()}",
+                    sql);
+                command.ExecuteNonQuery();
+                sql.Close();
+            }
+        }
+        /// <summary>
+        /// Gets newQuest1 param
+        /// </summary>
+        /// <param name="user_id"></param>
+        /// <returns></returns>
+        public static string GetNewQuest1(long user_id)
+        {
+            string newQuest1 = "";
+            if (sql.State == ConnectionState.Closed)
+            {
+                sql.Open();
+                NpgsqlCommand select = new NpgsqlCommand($"SELECT new_quest_f FROM users WHERE id = {user_id.GetHashCode()}", sql);
+                NpgsqlDataReader reader = select.ExecuteReader();//Если запрос возвращает таблицу
+
+                reader.Read();
+                newQuest1 = reader[0].ToString();
+
+                reader.Close();
+                sql.Close();
+            }
+            return newQuest1;
+        }
+
+
+
+        /// <summary>
+        /// Sets newQuest2 param
+        /// </summary>
+        /// <param name="user_id"></param>
+        /// <param name="check"></param>
+        public static void SetNewQuest2(long user_id, string newQuest2)
+        {
+            if (sql.State == ConnectionState.Closed)
+            {
+                sql.Open();
+                NpgsqlCommand command = new NpgsqlCommand(
+                    $"UPDATE users SET new_quest_s = '{newQuest2}' WHERE id = {user_id.GetHashCode()}",
+                    sql);
+                command.ExecuteNonQuery();
+                sql.Close();
+            }
+        }
+        /// <summary>
+        /// Gets newQuest2 param
+        /// </summary>
+        /// <param name="user_id"></param>
+        /// <returns></returns>
+        public static string GetNewQuest2(long user_id)
+        {
+            string newQuest2 = "";
+            if (sql.State == ConnectionState.Closed)
+            {
+                sql.Open();
+                NpgsqlCommand select = new NpgsqlCommand($"SELECT new_quest_s FROM users WHERE id = {user_id.GetHashCode()}", sql);
+                NpgsqlDataReader reader = select.ExecuteReader();//Если запрос возвращает таблицу
+
+                reader.Read();
+                newQuest2 = reader[0].ToString();
+
+                reader.Close();
+                sql.Close();
+            }
+            return newQuest2;
+        }
+
         #endregion
     }
 }
