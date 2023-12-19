@@ -1,5 +1,4 @@
 import requests
-import pg8000.native
 
 #<div class="label-content flex-11">
 #<table class="istu-table">
@@ -106,6 +105,7 @@ def FindInformations(all_people_link, all_people_information):
                         if (somebegin + 1 < someend):
                             one_string_of_table += consultations[count] + src[somebegin:someend].replace('\r\n', '')+ "\n"
                         if (count == 4):
+                            one_string_of_table 
                             all_people_information[-1].append(one_string_of_table)
                             one_string_of_table = ''
                             count = -1
@@ -130,11 +130,13 @@ def FindInformations(all_people_link, all_people_information):
 #
 #
 def ConnectPostgres(all_people_information):
-    connection = pg8000.native.Connection('postgres', password = 'line',  host = '26.9.70.246', port = '5432', database = 'tg_bot')
+    import pg8000.native
+
+    connection = pg8000.native.Connection('postgres', password = 'line', host = 'localhost', port = '5432', database = 'tg_bot')
 
     try:
         connection.run("DROP TABLE IF EXISTS teachers;")
-        connection.run("CREATE TABLE teachers (id serial, fullname text NOT NULL, contacts text, consultations text, CONSTRAINT pkey_fullname PRIMARY KEY (fullname));")
+        connection.run("CREATE TABLE teachers (id serial not null, fullname text NOT NULL, contacts text, consultations text, CONSTRAINT pkey_fullname PRIMARY KEY (fullname));")
         for people in all_people_information:
             contacts = ''
             consultations = ''
@@ -144,7 +146,7 @@ def ConnectPostgres(all_people_information):
                 else:
                     contacts += people[i] + "\n"
             try:
-                connection.run(f"INSERT INTO teachers (fullname, contacts, consultations) VALUES ('{people[0]}', '{contacts}', '{consultations}');")
+                connection.run(f"INSERT INTO teachers (fullname, contacts, consultations)  VALUES ('{people[0]}', '{contacts}', '–{consultations}');")
             except:
                 print("ВНИМАНИЕ! Ошибка при добавлении строки в таблицу преподавателей.")
         print('Поздравляем! Таблица преподавателей была успешно обновлена')
@@ -183,4 +185,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 

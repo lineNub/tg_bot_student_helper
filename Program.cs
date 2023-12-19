@@ -157,9 +157,12 @@ namespace Bot_Telegram
 
                                         if (message.Text == "Назад")
                                         {
-                                            if (GetStateInsertQuest(user.Id) == 1)
+                                            if (GetStateInsertQuest(user.Id) == 1 || GetStateInsertQuest(user.Id) == 2)
                                             {
                                                 SetStateInsertQuest(user.Id, 0);
+                                                await botClient.SendTextMessageAsync(
+                                                        chat.Id,
+                                                        "Ввод отменен.");
                                                 break;
                                             }
                                             int flag = GetFlag(user.Id);
@@ -584,6 +587,7 @@ namespace Bot_Telegram
                                             while (dr.Read())
                                                 studQuest += $"ID = {dr["q_id"]}: {dr["text"]}\n";
                                             studQuest = studQuest.TrimEnd('\n');
+                                            sql.Close();
 
                                             var adminKeyboard = new InlineKeyboardMarkup(
                                                 new List<InlineKeyboardButton[]>()
@@ -593,14 +597,21 @@ namespace Bot_Telegram
                                                         InlineKeyboardButton.WithCallbackData("Ответить на вопрос", "Answer")
                                                     },
                                                 });
-
+                                            if(studQuest == "")
+                                            {
+                                                await botClient.SendTextMessageAsync(
+                                                chat.Id,
+                                                text: "Нет новых вопросов.",
+                                                replyToMessageId: message.MessageId
+                                                );
+                                                break;
+                                            }
                                             await botClient.SendTextMessageAsync(
                                                 chat.Id,
                                                 text: studQuest,
                                                 replyMarkup: adminKeyboard,
                                                 replyToMessageId: message.MessageId
                                                 );
-                                            sql.Close();
 
                                             break;
                                         }
@@ -765,9 +776,6 @@ namespace Bot_Telegram
                                             Text3 = dr["consultations"].ToString();
                                         }
 
-                                        if (Text2.Length == 0)
-                                            Text2 = "не имеет доступной контактной информации.";
-
                                         sql.Close();
 
                                         string messege = $"{Text1}";
@@ -778,12 +786,12 @@ namespace Bot_Telegram
                                         {
                                             messege += $"\n\nКонтактная информация:\n{Text2.TrimEnd('\n')}.";
                                         }
-                                        if (Text3.Length == 0)
+                                        if (Text3.Length == 0 || Text3 == "–")
                                         {
                                             messege += "\n\nУ данного преподавателя нет консультаций.";
                                         } else
                                         {
-                                            messege += $"\n\nРасписание консультаций:\n{Text3.TrimEnd('\n')}.";
+                                            messege += $"\n\nРасписание консультаций:\n{Text3.TrimEnd('\n')}";
                                         }
                                         await botClient.SendTextMessageAsync(
                                             chat.Id,
@@ -874,12 +882,12 @@ namespace Bot_Telegram
             if (sql.State != ConnectionState.Open)
             {
                 sql.Open();
-                NpgsqlCommand select = new NpgsqlCommand($"SELECT answer FROM questions WHERE id = { id }", sql);
+                NpgsqlCommand select = new NpgsqlCommand($"SELECT answer FROM questions WHERE q_id = { id }", sql);
                 //int rows_changed = await select.ExecuteNonQueryAsync();//Если запрос не возвращает таблицу
                 NpgsqlDataReader reader = select.ExecuteReader();//Если запрос возвращает таблицу
         
                 reader.Read();
-                resultAsString = reader.GetInt32(0).ToString();
+                resultAsString = reader[0].ToString();
         
                 reader.Close();
                 sql.Close();
